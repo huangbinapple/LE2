@@ -5,8 +5,9 @@ from le2.common.protein import Protein
 class LocalEnvironmentDataSet(Dataset):
   def __init__(self, file_path):
     self.file_path = file_path
+    file_type = file_path.split('.')[-1]
     with open(file_path) as f:
-      self.protien = Protein(f.read())
+      self.protien = Protein(f.read(), file_type)
     
   def __len__(self):
     return len(self.protien)
