@@ -1,7 +1,7 @@
 """Protein data type."""
 import os
 import io
-from Bio.PDB import PDBParser, FastMMCIFParser
+from Bio.PDB import PDBParser, FastMMCIFParser  # type: ignore
 import torch
 
 

@@ -1,6 +1,6 @@
 import torch
 import unittest
-from Bio.PDB import PDBParser, FastMMCIFParser
+from Bio.PDB import PDBParser, FastMMCIFParser  # type: ignore
 import numpy as np
 from le2.common.protein import extract_main_chain_atoms, Protein
 
