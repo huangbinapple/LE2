@@ -112,19 +112,10 @@ class Protein:
       # shape: (L, 3, 3)
     self.residue_names =\
       [self._atoms_info['residue_names'][i] for i in self._valid_residues_index]
-    residue_indicies =\
+    self.residue_indicies =\
       [self._atoms_info['residue_indices'][i] for i in self._valid_residues_index]
-    residue_chain_ids =\
+    self.residue_chain_ids =\
       [self._atoms_info['chain_ids'][i] for i in self._valid_residues_index]
-    # Create a sequence coordinates for each residue, combining its chain ID
-    # and index
-    residu_seq_coordinates =\
-      torch.tensor(residue_indicies) +\
-        torch.tensor([hash(chain_id) for chain_id in residue_chain_ids])
-    # Calculate the distances between all residues in seqeunce space
-    self.mutual_seqeunce_distance =\
-      residu_seq_coordinates.unsqueeze(1) - residu_seq_coordinates
-      # Shape: (L, L)
       
     # Calculate the distances between all pairs of CA atoms in 3D space
     self.mutual_ca_distances = self._calculate_mutual_ca_distances()

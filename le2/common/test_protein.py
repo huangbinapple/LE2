@@ -135,12 +135,6 @@ class TestProtein(unittest.TestCase):
     # print('number of neighbors 10: ', neighbors_10.size())
     self.assertTrue(neighbors_5.size() < neighbors_10.size())
 
-  def test_sequence_distance(self):
-    # Check that the sequence distance is correctly computed
-    test_i = 10
-    distance = self.protein.mutual_seqeunce_distance[test_i + 1, test_i].item()
-    self.assertEqual(distance, 1)
-
   def test_ca_distance(self):
     # Check that the CA distance is correctly computed
     CA0_coords = [2.687, -0.122, 0.339]
