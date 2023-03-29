@@ -107,7 +107,7 @@ class Protein:
     self._valid_residues_index =\
       (~self._atoms_info['main_chain_atoms'].sum(dim=(1, 2)).isnan()).\
         nonzero().squeeze()
-    self._atom_coords =\
+    self.atom_coords =\
       self._atoms_info['main_chain_atoms'][self._valid_residues_index]
       # shape: (L, 3, 3)
     self.residue_names =\
@@ -123,7 +123,7 @@ class Protein:
     
   def __len__(self):
     """Return the number of residues in the protein."""
-    return len(self._atom_coords)
+    return len(self.atom_coords)
     
   def _load_structure(self):
     """Load the protein structure from the input file."""
@@ -139,7 +139,7 @@ class Protein:
   def _calculate_mutual_ca_distances(self):
     """Calculate the distances between all pairs of CA atoms in the protein."""
     # Calculate the distances between all pairs of CA atoms
-    ca_atoms = self._atom_coords[:, 1, :]  # size: (L, 3)
+    ca_atoms = self.atom_coords[:, 1, :]  # size: (L, 3)
     distances = torch.cdist(ca_atoms, ca_atoms)
     return distances  # shape: (L, L)
   
