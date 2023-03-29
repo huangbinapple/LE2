@@ -34,7 +34,6 @@ class TestLocalEnvironmentDataSet(unittest.TestCase):
     self.assertIn('target_atom_coordinates', sample['feature'])
     self.assertIn('target_name', sample['label'])
     self.assertIn('file_path', sample['meta'])
-    self.assertIn('protein', sample['meta'])
     
     # print(sample)
     

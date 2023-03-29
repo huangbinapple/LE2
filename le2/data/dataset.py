@@ -31,7 +31,6 @@ class LocalEnvironmentDataSet(Dataset):
     - meta (dict): a dictionary containing the metadata of the residue at
         index `index`
       - file_path (str): the path to the file that contains the protein
-      - protein (le2.common.protein.Protein): the protein object
     """
     features = {}
     neighbor_indicies = self.protien.get_neighbor_indicies(index)
@@ -49,6 +48,6 @@ class LocalEnvironmentDataSet(Dataset):
     
     label = dict(target_name=self.protien.residue_names[index])
     
-    meta = dict(file_path=self.file_path, protein=self.protien)
+    meta = dict(file_path=self.file_path)
     return {'feature': features, 'label': label, 'meta': meta}
       
