@@ -3,7 +3,8 @@ from le2.common.protein import Protein
 from le2.common import residue_constants as rc
 
 class LocalEnvironmentDataSet(Dataset):
-  def __init__(self, file_path):
+  def __init__(self, file_path, radius=12):
+    self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
     with open(file_path) as f:
@@ -33,7 +34,7 @@ class LocalEnvironmentDataSet(Dataset):
       - file_path (str): the path to the file that contains the protein
     """
     features = {}
-    neighbor_indicies = self.protien.get_neighbor_indicies(index)
+    neighbor_indicies = self.protien.get_neighbor_indicies(index, self.radius)
     features['neighbor_names'] =\
       [self.protien.residue_names[i] for i in neighbor_indicies]
     features['neighbor_indicies'] =\
