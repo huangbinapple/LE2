@@ -3,17 +3,17 @@ from le2.common.protein import Protein
 from le2.common import residue_constants as rc
 
 class LocalEnvironmentDataSet(Dataset):
-  def __init__(self, file_path, radius=12):
+  def __init__(self, file_path: str, radius: float =12.0):
     self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
     with open(file_path) as f:
       self.protien = Protein(f.read(), file_type)
     
-  def __len__(self):
+  def __len__(self) -> int:
     return len(self.protien)
   
-  def __getitem__(self, index):
+  def __getitem__(self, index: int) -> dict:
     """
     Output (dict): containing the features, label, and meta info of one sample
     - feature (dict): a dictionary containing the features of the target residue
@@ -53,7 +53,7 @@ class LocalEnvironmentDataSet(Dataset):
     return {'feature': features, 'label': label, 'meta': meta}
 
 
-def collate_fn(batch):
+def collate_fn(batch: list) -> dict:
   """
   Collate function for the LocalEnvironmentDataSet.
   """

@@ -1,15 +1,12 @@
 """Protein data type."""
 import os
 import io
+import Bio  # type: ignore
 from Bio.PDB import PDBParser, FastMMCIFParser  # type: ignore
 import torch
 
 
-def sum_two_numbers(a, b):
-    return a + b
-
-
-def extract_main_chain_atoms(structure):
+def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
   """
   Extracts the main chain atoms (N, CA, C) for each residue in a Bio.PDB structure object and
   returns a dictionary containing the main chain atoms as a torch.tensor array of size (L, 3, 3),
@@ -93,7 +90,7 @@ def extract_main_chain_atoms(structure):
 class Protein:
   """Protein structure representation."""
 
-  def __init__(self, raw_string, file_type='pdb'):
+  def __init__(self, raw_string: str, file_type: str ='pdb'):
     """Initialize a Protein object.
 
     Args:
@@ -121,11 +118,11 @@ class Protein:
     self.mutual_ca_distances = self._calculate_mutual_ca_distances()
     # Shape: (L, L)
     
-  def __len__(self):
+  def __len__(self) -> int:
     """Return the number of residues in the protein."""
     return len(self.atom_coords)
     
-  def _load_structure(self):
+  def _load_structure(self) -> Bio.PDB.Structure.Structure:
     """Load the protein structure from the input file."""
     if self._file_type == 'pdb':
       parser = PDBParser()
@@ -136,14 +133,15 @@ class Protein:
     handle = io.StringIO(self._raw_string)
     return parser.get_structure('protein', handle)
   
-  def _calculate_mutual_ca_distances(self):
+  def _calculate_mutual_ca_distances(self) -> torch.tensor:
     """Calculate the distances between all pairs of CA atoms in the protein."""
     # Calculate the distances between all pairs of CA atoms
     ca_atoms = self.atom_coords[:, 1, :]  # size: (L, 3)
     distances = torch.cdist(ca_atoms, ca_atoms)
     return distances  # shape: (L, L)
   
-  def get_neighbor_indicies(self, residue_index, cutoff=12.0):
+  def get_neighbor_indicies(
+      self, residue_index: int, cutoff: float =12.0) -> torch.tensor:
     """Get the neighbors of a residue.
 
     Args:
