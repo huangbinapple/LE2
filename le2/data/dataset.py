@@ -1,6 +1,6 @@
 from torch.utils.data import Dataset
 from le2.common.protein import Protein
-
+from le2.common import residue_constants as rc
 
 class LocalEnvironmentDataSet(Dataset):
   def __init__(self, file_path):
@@ -50,4 +50,38 @@ class LocalEnvironmentDataSet(Dataset):
     
     meta = dict(file_path=self.file_path)
     return {'feature': features, 'label': label, 'meta': meta}
-      
+
+
+def collate_fn(batch):
+  """
+  Collate function for the LocalEnvironmentDataSet.
+  """
+  features = {}
+  labels = dict(target_name=[])
+  metas = {}
+  for sample in batch:
+    for key in sample['feature'].keys():
+      if key not in features:
+        features[key] = []
+      if key == 'neighbor_names':
+        # Convert residue names to vocab indicies
+        features[key].append([rc.get_resname_index(name)
+                              for name in sample['feature'][key]])
+      elif key == 'target_chain_id':
+        # Convert chain id to its hash.
+        features[key].append(hash(sample['feature'][key]))
+      elif key == 'target_chain_ids':
+        features[key].append([hash(chain_id)
+                              for chain_id in sample['feature'][key]])
+      else:
+        features[key].append(sample['feature'][key])
+        
+    labels['target_name'].append(
+      rc.get_resname_index(sample['label']['target_name']))
+    
+    for key in sample['meta'].keys():
+      if key not in metas:
+        metas[key] = []
+      metas[key].append(sample['meta'][key])
+  
+  return {'feature': features, 'label': labels, 'meta': metas}

@@ -1,6 +1,7 @@
 import unittest
+from torch.utils.data import DataLoader
 from le2.common.protein import Protein
-from le2.data.dataset import LocalEnvironmentDataSet
+from le2.data.dataset import LocalEnvironmentDataSet, collate_fn
 
 
 class TestLocalEnvironmentDataSet(unittest.TestCase):
@@ -40,3 +41,27 @@ class TestLocalEnvironmentDataSet(unittest.TestCase):
     # Test for an invalid index
     with self.assertRaises(IndexError):
       sample = self.dataset[len(self.protein) + 1]
+      
+class TestCollateFn(unittest.TestCase):
+  def setUp(self):
+    file_path = 'example/0089.pdb'
+    self.dataset = LocalEnvironmentDataSet(file_path)
+    
+  def test_collate_fn(self):
+    
+    # Initialize a DataLoader with batch size 2 and the collate_fn
+    dataloader = DataLoader(self.dataset, batch_size=2, collate_fn=collate_fn)
+    
+    # Iterate through the DataLoader and check the output
+    batch = next(iter(dataloader))
+    # print(batch)
+    self.assertIsInstance(batch, dict)
+    self.assertIn('feature', batch)
+    self.assertIn('label', batch)
+    self.assertIn('meta', batch)
+    self.assertIsInstance(batch['feature'], dict)
+    self.assertIsInstance(batch['label'], dict)
+    self.assertIsInstance(batch['meta'], dict)
+    self.assertEqual(len(batch['feature']['neighbor_names']), 2)
+    self.assertEqual(len(batch['label']['target_name']), 2)
+    self.assertEqual(len(batch['meta']['file_path']), 2)
