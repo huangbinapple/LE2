@@ -29,8 +29,7 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
     - residue_indices (list): a list of length L containing the residue indices for each residue in
         the structure
     - chain_ids (list): a list of length L containing the chain IDs for each residue in the structure
-    - multiple_models (bool): a boolean flag indicating whether the structure contains multiple
-        models (True) or not (False)
+    - multiple_models (bool): a boolean flag indicating whether the structure contains multiple models (True) or not (False)
   """
   # Check if the structure contains multiple models
   num_models = len(structure)
