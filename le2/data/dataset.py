@@ -1,6 +1,8 @@
+import torch
 from torch.utils.data import Dataset
 from le2.common.protein import Protein
 from le2.common import residue_constants as rc
+from torch.nn.utils.rnn import pad_sequence
 
 class LocalEnvironmentDataSet(Dataset):
   def __init__(self, file_path: str, radius: float =12.0):
@@ -26,7 +28,6 @@ class LocalEnvironmentDataSet(Dataset):
       - target_index (int): the index of the target residue
       - target_chain_id (str): the chain id of the target residue
       - target_atom_coordinates (tensor): a tensor of the atom coordinates
-      - meta (dict): 
     - label (dict):
       - target_name (str): the name of the residue at index `index`
     - meta (dict): a dictionary containing the metadata of the residue at
@@ -56,33 +57,64 @@ class LocalEnvironmentDataSet(Dataset):
 def collate_fn(batch: list) -> dict:
   """
   Collate function for the LocalEnvironmentDataSet.
-  """
-  features = {}
-  labels = dict(target_name=[])
-  metas = {}
-  for sample in batch:
-    for key in sample['feature'].keys():
-      if key not in features:
-        features[key] = []
-      if key == 'neighbor_names':
-        # Convert residue names to vocab indicies
-        features[key].append([rc.get_resname_index(name)
-                              for name in sample['feature'][key]])
-      elif key == 'target_chain_id':
-        # Convert chain id to its hash.
-        features[key].append(hash(sample['feature'][key]))
-      elif key == 'target_chain_ids':
-        features[key].append([hash(chain_id)
-                              for chain_id in sample['feature'][key]])
-      else:
-        features[key].append(sample['feature'][key])
-        
-    labels['target_name'].append(
-      rc.get_resname_index(sample['label']['target_name']))
-    
-    for key in sample['meta'].keys():
-      if key not in metas:
-        metas[key] = []
-      metas[key].append(sample['meta'][key])
   
-  return {'feature': features, 'label': labels, 'meta': metas}
+  Args:
+    batch (list): a list of samples from the LocalEnvironmentDataSet.
+    
+  Returns (dict): a dictionary containing the features, labels, and metas of
+    the batch.
+    - features (dict): a dictionary containing the features of the batch.
+      - neighbor_names (torch.tensor): shape: (batch_size, max_len)
+      - neighbor_indicies (torch.tensor): shape: (batch_size, max_len)
+      - neighbor_chain_ids (torch.tensor): shape: (batch_size, max_len)
+      - neighbor_atom_coordinates (torch.tensor):
+        shape: (batch_size, max_len, 3, 3)
+      - target_index (torch.tensor): shape: (batch_size)
+      - target_chain_id (torch.tensor): shape: (batch_size)
+      - target_atom_coordinates (torch.tensor): shape: (batch_size, 3, 3)
+    - labels (dict): a dictionary containing the labels of the batch.
+     - target_name (torch.tensor): shape: (batch_size)
+    - metas (dict): a dictionary containing the metas of the batch.
+      - file_path (list): a list of the file paths of the proteins in the batch.
+    - mask (torch.tensor): shape: (batch_size, max_len)
+  """
+  batch_size = len(batch)
+  lengths = [len(sample['feature']['neighbor_names']) for sample in batch]
+  max_len = max(lengths)
+  output = dict(features={}, labels={}, meta={}, mask=None)
+  
+  # Make mask
+  output['mask'] = torch.zeros(batch_size, max_len, dtype=torch.bool)
+  for i, length in enumerate(lengths):
+    output['mask'][i, :length] = True
+    
+  output['features']['neighbor_names'] = pad_sequence(
+    [torch.tensor(list(map(rc.get_resname_index, sample['feature']['neighbor_names']))) for sample in batch], batch_first=True)
+  
+  output['features']['neighbor_indicies'] = pad_sequence(
+    [torch.tensor(sample['feature']['neighbor_indicies'])
+     for sample in batch], batch_first=True)
+  
+  output['features']['neighbor_chain_ids'] = pad_sequence(
+    [torch.tensor(list(map(hash, sample['feature']['neighbor_chain_ids'])))
+     for sample in batch], batch_first=True)
+  
+  output['features']['neighbor_atom_coordinates'] = pad_sequence(
+    [torch.tensor(sample['feature']['neighbor_atom_coordinates'])
+     for sample in batch], batch_first=True)
+  
+  output['features']['target_index'] = torch.tensor(
+    [sample['feature']['target_index'] for sample in batch])
+  
+  output ['features']['target_chain_id'] = torch.tensor(
+    list(map(hash, [sample['feature']['target_chain_id'] for sample in batch])))
+
+  output['features']['target_atom_coordinates'] = torch.stack(
+    [sample['feature']['target_atom_coordinates'] for sample in batch])
+  
+  output['labels']['target_name'] = torch.tensor(
+    [rc.get_resname_index(sample['label']['target_name']) for sample in batch])
+    
+  output['meta']['file_path'] = [sample['meta']['file_path'] for sample in batch]
+  
+  return output

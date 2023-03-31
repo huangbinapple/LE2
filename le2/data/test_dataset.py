@@ -1,4 +1,5 @@
 import unittest
+import torch
 from torch.utils.data import DataLoader
 from le2.common.protein import Protein
 from le2.data.dataset import LocalEnvironmentDataSet, collate_fn
@@ -48,20 +49,68 @@ class TestCollateFn(unittest.TestCase):
     self.dataset = LocalEnvironmentDataSet(file_path)
     
   def test_collate_fn(self):
-    
-    # Initialize a DataLoader with batch size 2 and the collate_fn
-    dataloader = DataLoader(self.dataset, batch_size=2, collate_fn=collate_fn)
-    
-    # Iterate through the DataLoader and check the output
+    dataset = self.dataset
+    dataloader = DataLoader(dataset, batch_size=2, collate_fn=collate_fn)
     batch = next(iter(dataloader))
-    # print(batch)
-    self.assertIsInstance(batch, dict)
-    self.assertIn('feature', batch)
-    self.assertIn('label', batch)
-    self.assertIn('meta', batch)
-    self.assertIsInstance(batch['feature'], dict)
-    self.assertIsInstance(batch['label'], dict)
-    self.assertIsInstance(batch['meta'], dict)
-    self.assertEqual(len(batch['feature']['neighbor_names']), 2)
-    self.assertEqual(len(batch['label']['target_name']), 2)
-    self.assertEqual(len(batch['meta']['file_path']), 2)
+    
+    lengths = [len(dataset[i]['feature']['neighbor_names']) for i in range(2)]
+    # print('lengths:', lengths)
+    max_len = max(lengths)
+    
+    # Check output dictionary keys
+    assert set(batch.keys()) == set(['features', 'labels', 'meta', 'mask'])
+    
+    # Check features dictionary keys
+    assert set(batch['features'].keys()) == set([
+      'neighbor_names', 'neighbor_indicies', 'neighbor_chain_ids',
+      'neighbor_atom_coordinates', 'target_index', 'target_chain_id',
+      'target_atom_coordinates'])
+    
+    # Check mask shape
+    print(batch['mask'].shape)
+    assert batch['mask'].shape == (2, max_len)
+    
+    # Check neighbor_names shape and type
+    assert batch['features']['neighbor_names'].shape == (2, max_len)
+    assert isinstance(batch['features']['neighbor_names'], torch.Tensor)
+    
+    # Check neighbor_indicies shape and type
+    assert batch['features']['neighbor_indicies'].shape == (2, max_len)
+    assert isinstance(batch['features']['neighbor_indicies'], torch.Tensor)
+    
+    # Check neighbor_chain_ids shape and type
+    assert batch['features']['neighbor_chain_ids'].shape == (2, max_len)
+    assert isinstance(batch['features']['neighbor_chain_ids'], torch.Tensor)
+    
+    # Check neighbor_atom_coordinates shape and type
+    assert batch['features']['neighbor_atom_coordinates'].shape == (
+      2, max_len, 3, 3)
+    assert isinstance(batch['features']['neighbor_atom_coordinates'], torch.Tensor)
+    
+    # Check target_index shape and type
+    assert batch['features']['target_index'].shape == (2,)
+    assert isinstance(batch['features']['target_index'], torch.Tensor)
+    
+    # Check target_chain_id shape and type
+    assert batch['features']['target_chain_id'].shape == (2,)
+    assert isinstance(batch['features']['target_chain_id'], torch.Tensor)
+    
+    # Check target_atom_coordinates shape and type
+    assert batch['features']['target_atom_coordinates'].shape == (2, 3, 3)
+    assert isinstance(batch['features']['target_atom_coordinates'], torch.Tensor)
+    
+    # Check labels dictionary keys
+    assert set(batch['labels'].keys()) == set(['target_name'])
+    
+    # Check target_name shape and type
+    assert batch['labels']['target_name'].shape == (2,)
+    assert isinstance(batch['labels']['target_name'], torch.Tensor)
+    
+    # Check meta dictionary keys
+    assert set(batch['meta'].keys()) == set(['file_path'])
+    
+    # Check file_path type
+    assert isinstance(batch['meta']['file_path'], list)
+    assert isinstance(batch['meta']['file_path'][0], str)
+    
+    print(batch)
