@@ -100,7 +100,7 @@ def collate_fn(batch: list) -> dict:
      for sample in batch], batch_first=True)
   
   output['features']['neighbor_atom_coordinates'] = pad_sequence(
-    [torch.tensor(sample['feature']['neighbor_atom_coordinates'])
+    [sample['feature']['neighbor_atom_coordinates']
      for sample in batch], batch_first=True)
   
   output['features']['target_index'] = torch.tensor(
