@@ -67,7 +67,7 @@ class TestCollateFn(unittest.TestCase):
       'target_atom_coordinates'])
     
     # Check mask shape
-    print(batch['mask'].shape)
+    # print(batch['mask'].shape)
     assert batch['mask'].shape == (2, max_len)
     
     # Check neighbor_names shape and type
@@ -112,5 +112,3 @@ class TestCollateFn(unittest.TestCase):
     # Check file_path type
     assert isinstance(batch['meta']['file_path'], list)
     assert isinstance(batch['meta']['file_path'][0], str)
-    
-    print(batch)
