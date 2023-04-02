@@ -19,6 +19,7 @@ class LocalEnvironmentDataSet(Dataset):
     file_type = file_path.split('.')[-1]
     with open(file_path) as f:
       self.protien = Protein(f.read(), file_type)
+    logger.info(f"Loaded {len(self.protien)} residues from {file_path}")
     
   def __len__(self) -> int:
     return len(self.protien)
@@ -81,9 +82,10 @@ def construct_dataset_from_dir(dir_path: str) -> ConcatDataset:
       logger.warning(f"Could not load {file_name}")
       n_skipped += 1
   tock = time.time()
+  output = ConcatDataset(datasets)
   logger.info(f"Loaded {n_loaded} files, skipped {n_skipped} files " \
-              f"in {tock - tick:.2f} seconds.")
-  return ConcatDataset(datasets)
+              f"in {tock - tick:.2f} seconds; {len(output)} residues collected.")
+  return output
 
 
 def collate_fn(batch: list) -> dict:
