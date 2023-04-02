@@ -124,9 +124,9 @@ class Protein:
   def _load_structure(self) -> Bio.PDB.Structure.Structure:
     """Load the protein structure from the input file."""
     if self._file_type == 'pdb':
-      parser = PDBParser()
+      parser = PDBParser(QUIET=True)
     elif self._file_type == 'cif':
-      parser = FastMMCIFParser()
+      parser = FastMMCIFParser(QUIET=True)
     else:
       raise ValueError('Invalid file type: {}'.format(self._file_type))
     handle = io.StringIO(self._raw_string)
