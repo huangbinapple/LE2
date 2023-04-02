@@ -139,8 +139,9 @@ class Protein:
   def _calculate_mutual_ca_distances(self) -> torch.tensor:
     """Calculate the distances between all pairs of CA atoms in the protein."""
     # Calculate the distances between all pairs of CA atoms
-    logger.debug('Calculating the distances between all pairs of CA atoms...')
     ca_atoms = self.atom_coords[:, 1, :]  # size: (L, 3)
+    logger.debug(f'Calculating the distances between all pairs '\
+                 f'({len(ca_atoms)}) of CA atoms...')
     distances = torch.cdist(ca_atoms, ca_atoms)
     return distances  # shape: (L, L)
   
