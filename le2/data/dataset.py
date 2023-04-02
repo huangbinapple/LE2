@@ -2,7 +2,6 @@ import logging
 import time
 import os
 import torch
-import pickle
 from torch.utils.data import Dataset, ConcatDataset
 from le2.common.protein import Protein
 from le2.common import residue_constants as rc
@@ -21,18 +20,16 @@ class LocalEnvironmentDataSet(Dataset):
     if cache_dir is not None:
       if not os.path.exists(cache_dir):
         os.makedirs(cache_dir)
-      cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pkl')
+      cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pt')
       if os.path.exists(cache_file):
         logger.info(f"Loading cached data from {cache_file}")
-        with open(cache_file, 'rb') as f:
-          self.protein = pickle.load(f)
+        self.protein = torch.load(cache_file)
         return
       else:
         with open(file_path) as f:
           self.protein = Protein(f.read(), file_type)
         logger.info(f"Saving data to {cache_file}")
-        with open(cache_file, 'wb') as f:
-          pickle.dump(self.protein, f)
+        torch.save(self.protein, cache_file)
     logger.info(f"Loaded {len(self.protein)} residues from {file_path}")
     
   def __len__(self) -> int:
