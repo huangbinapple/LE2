@@ -7,10 +7,12 @@ from le2.common import residue_constants as rc
 from le2 import config
 from torch.nn.utils.rnn import pad_sequence
 
+logger = logging.getLogger(config.LOG_NAME)
+
 
 class LocalEnvironmentDataSet(Dataset):
   def __init__(self, file_path: str, radius: float =12.0):
-    logging.info(f"Loading data from {file_path}..., radius={radius}")
+    logger.info(f"Loading data from {file_path}..., radius={radius}")
     self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
