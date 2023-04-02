@@ -15,7 +15,7 @@ fh.setLevel(LOG_LEVEL)
 
 # Create a formatter and add it to the handler
 formatter = logging.Formatter(
-  '%(asctime)s %(levelname)s %(module)s: %(message)s')
+  '%(asctime)s\t%(name)s@%(module)-10s\t%(levelname)-8s%(message)s')
 fh.setFormatter(formatter)
 
 # Add the handler to the logger
