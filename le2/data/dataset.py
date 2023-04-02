@@ -2,6 +2,7 @@ import logging
 import time
 import os
 import torch
+import pickle
 from torch.utils.data import Dataset, ConcatDataset
 from le2.common.protein import Protein
 from le2.common import residue_constants as rc
@@ -12,17 +13,30 @@ logger = logging.getLogger(config.LOG_NAME)
 
 
 class LocalEnvironmentDataSet(Dataset):
-  def __init__(self, file_path: str, radius: float =12.0):
+  def __init__(self, file_path: str, radius: float =12.0, cache_dir: str =''):
     logger.info(f"Loading data from {file_path}..., radius={radius}")
     self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
-    with open(file_path) as f:
-      self.protien = Protein(f.read(), file_type)
-    logger.info(f"Loaded {len(self.protien)} residues from {file_path}")
+    if cache_dir is not None:
+      if not os.path.exists(cache_dir):
+        os.makedirs(cache_dir)
+      cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pkl')
+      if os.path.exists(cache_file):
+        logger.info(f"Loading cached data from {cache_file}")
+        with open(cache_file, 'rb') as f:
+          self.protein = pickle.load(f)
+        return
+      else:
+        with open(file_path) as f:
+          self.protein = Protein(f.read(), file_type)
+        logger.info(f"Saving data to {cache_file}")
+        with open(cache_file, 'wb') as f:
+          pickle.dump(self.protein, f)
+    logger.info(f"Loaded {len(self.protein)} residues from {file_path}")
     
   def __len__(self) -> int:
-    return len(self.protien)
+    return len(self.protein)
   
   def __getitem__(self, index: int) -> dict:
     """
@@ -44,26 +58,26 @@ class LocalEnvironmentDataSet(Dataset):
       - file_path (str): the path to the file that contains the protein
     """
     features = {}
-    neighbor_indicies = self.protien.get_neighbor_indicies(index, self.radius)
+    neighbor_indicies = self.protein.get_neighbor_indicies(index, self.radius)
     features['neighbor_names'] =\
-      [self.protien.residue_names[i] for i in neighbor_indicies]
+      [self.protein.residue_names[i] for i in neighbor_indicies]
     features['neighbor_indicies'] =\
-      [self.protien.residue_indicies[i] for i in neighbor_indicies]
+      [self.protein.residue_indicies[i] for i in neighbor_indicies]
     features['neighbor_chain_ids'] =\
-      [self.protien.residue_chain_ids[i] for i in neighbor_indicies]
+      [self.protein.residue_chain_ids[i] for i in neighbor_indicies]
     features['neighbor_atom_coordinates'] =\
-      self.protien.atom_coords[neighbor_indicies]
-    features['target_index'] = self.protien.residue_indicies[index]
-    features['target_chain_id'] = self.protien.residue_chain_ids[index]
-    features['target_atom_coordinates'] = self.protien.atom_coords[index]
+      self.protein.atom_coords[neighbor_indicies]
+    features['target_index'] = self.protein.residue_indicies[index]
+    features['target_chain_id'] = self.protein.residue_chain_ids[index]
+    features['target_atom_coordinates'] = self.protein.atom_coords[index]
     
-    label = dict(target_name=self.protien.residue_names[index])
+    label = dict(target_name=self.protein.residue_names[index])
     
     meta = dict(file_path=self.file_path)
     return {'feature': features, 'label': label, 'meta': meta}
   
   
-def construct_dataset_from_dir(dir_path: str) -> ConcatDataset:
+def construct_dataset_from_dir(dir_path: str, cache_dir: str='') -> ConcatDataset:
   """
   Construct a ConcatDataset from a directory using all cif and pdb
   files in that dir, by constructing a LocalEnvironmentDataSet for each
@@ -75,7 +89,8 @@ def construct_dataset_from_dir(dir_path: str) -> ConcatDataset:
   tick = time.time()
   for file_name in os.listdir(dir_path):
     try:
-      dataset = LocalEnvironmentDataSet(os.path.join(dir_path, file_name))
+      dataset = LocalEnvironmentDataSet(
+        os.path.join(dir_path, file_name), cache_dir=cache_dir)
       datasets.append(dataset)
       n_loaded += 1
     except ValueError:
