@@ -89,7 +89,10 @@ def collate_fn(batch: list) -> dict:
     output['mask'][i, :length] = True
     
   output['features']['neighbor_names'] = pad_sequence(
-    [torch.tensor(list(map(rc.get_resname_index, sample['feature']['neighbor_names']))) for sample in batch], batch_first=True)
+    [torch.tensor(list(
+      map(rc.get_resname_index, sample['feature']['neighbor_names'])))
+      for sample in batch],
+    batch_first=True)
   
   output['features']['neighbor_indicies'] = pad_sequence(
     [torch.tensor(sample['feature']['neighbor_indicies'])
