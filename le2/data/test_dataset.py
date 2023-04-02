@@ -1,8 +1,9 @@
 import unittest
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 from le2.common.protein import Protein
-from le2.data.dataset import LocalEnvironmentDataSet, collate_fn
+from le2.data.dataset import LocalEnvironmentDataSet, collate_fn,\
+  construct_dataset_from_dir
 
 
 class TestLocalEnvironmentDataSet(unittest.TestCase):
@@ -112,3 +113,12 @@ class TestCollateFn(unittest.TestCase):
     # Check file_path type
     assert isinstance(batch['meta']['file_path'], list)
     assert isinstance(batch['meta']['file_path'][0], str)
+    
+    
+class TestConstructDatasetFromDir(unittest.TestCase):
+  def setUp(self):
+    self.dir_path = 'example'
+    
+  def test_construct_dataset_from_dir(self):
+    dataset = construct_dataset_from_dir(self.dir_path)
+    assert isinstance(dataset, ConcatDataset)

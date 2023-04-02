@@ -1,7 +1,8 @@
 import logging
+import time
 import os
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, ConcatDataset
 from le2.common.protein import Protein
 from le2.common import residue_constants as rc
 from le2 import config
@@ -59,6 +60,30 @@ class LocalEnvironmentDataSet(Dataset):
     
     meta = dict(file_path=self.file_path)
     return {'feature': features, 'label': label, 'meta': meta}
+  
+  
+def construct_dataset_from_dir(dir_path: str) -> ConcatDataset:
+  """
+  Construct a ConcatDataset from a directory using all cif and pdb
+  files in that dir, by constructing a LocalEnvironmentDataSet for each
+  of those files, and then Concatenating them together.
+  """
+  assert os.path.isdir(dir_path)
+  datasets = []
+  n_loaded, n_skipped = 0, 0
+  tick = time.time()
+  for file_name in os.listdir(dir_path):
+    try:
+      dataset = LocalEnvironmentDataSet(os.path.join(dir_path, file_name))
+      datasets.append(dataset)
+      n_loaded += 1
+    except ValueError:
+      logger.warning(f"Could not load {file_name}")
+      n_skipped += 1
+  tock = time.time()
+  logger.info(f"Loaded {n_loaded} files, skipped {n_skipped} files " \
+              f"in {tock - tick:.2f} seconds.")
+  return ConcatDataset(datasets)
 
 
 def collate_fn(batch: list) -> dict:
