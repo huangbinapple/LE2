@@ -6,7 +6,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 def make_feature(feature_batch: dict, device: str ='cpu',
-                 max_1d_distance: int = 5) -> dict:
+                 max_1d_distance: int = 5) -> torch.Tensor:
   """
   Make features that fed into the model.
   """
