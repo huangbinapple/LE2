@@ -17,11 +17,15 @@ class TestResidueTypePredictor(unittest.TestCase):
 
     # Run the forward pass.
     # print(self.sample)
-    output = model(self.sample)
+    output = model(self.sample, compute_loss=True)
     # print(output)
 
     # Check that the output has the correct shape.
     self.assertEqual(output['logits'].shape, (2, 21))
+    
+    # Check loss.
+    # print(output['loss'])
+    self.assertEqual(output['loss'].shape, ())
 
 if __name__ == '__main__':
     unittest.main()

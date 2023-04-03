@@ -22,7 +22,7 @@ class ResidueTypePredictor(nn.Module):
     # Define the output layer.
     self.head_residue_type = nn.Linear(d_model, rc.restype_num + 1, device=device)
 
-  def forward(self, sample: dict) -> dict:
+  def forward(self, sample: dict, compute_loss=False) -> dict:
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
@@ -40,6 +40,13 @@ class ResidueTypePredictor(nn.Module):
     # Average over the sequence length, with mask!
     x = torch.sum(x, dim=1)  # Shape: (B, 256)
     x = x / torch.sum(sample['mask'], dim=1, keepdim=True)  # Shape: (B, 256)
-    x = self.head_residue_type(x)  # Shape: (B, L, 21)
+    x = self.head_residue_type(x)  # Shape: (B, 21)
     output['logits'] = x
+    if compute_loss:
+      self.loss(output, sample)
     return output
+  
+  def loss(self, output, sample):
+    """Compute loss."""
+    output['loss'] = nn.CrossEntropyLoss()(
+      output['logits'], sample['labels']['target_name'])
