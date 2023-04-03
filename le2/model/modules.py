@@ -26,7 +26,7 @@ class ResidueTypePredictor(nn.Module):
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
-        - features: dict of features. Shape: (B, L, ~45)
+        - features: dict of features. Shape: (B, L, d_input)
         - mask: torch.Tensor of mask. Shape: (B, L)
     Return:
       - output: dict of output.
@@ -37,8 +37,9 @@ class ResidueTypePredictor(nn.Module):
     x = self.input(x)  # Shape: (B, L, 256)
     x = self.encoder(x, src_key_padding_mask=~sample['mask'])
     # Shape: (B, L, 256)
+    # Average over the sequence length, with mask!
+    x = torch.sum(x, dim=1)  # Shape: (B, 256)
+    x = x / torch.sum(sample['mask'], dim=1, keepdim=True)  # Shape: (B, 256)
     x = self.head_residue_type(x)  # Shape: (B, L, 21)
-    # Average over the sequence length.
-    x = torch.mean(x, dim=1)  # Shape: (B, 21)
     output['logits'] = x
     return output
