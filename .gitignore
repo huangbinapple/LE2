@@ -2,6 +2,7 @@
 .DS_Store
 .vscode/
 .idea/
+log/
 
 # Ignore compiled binary files
 *.class
@@ -13,7 +14,6 @@
 *.tmp
 *.bak
 *.swp
-*.pyc
 
 # Ignore dependency directories
 data/
