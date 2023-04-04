@@ -27,6 +27,9 @@ class LocalEnvironmentDataSet(Dataset):
       with open(file_path) as f:
         self.protein = Protein(f.read(), file_type)
       if cache_dir:
+        # If dir not exist, make one.
+        if not os.path.exists(cache_dir):
+          os.makedirs(cache_dir)
         logger.info(f"Saving data to {cache_file}")
         with open(cache_file, 'wb') as f:
           pickle.dump(self.protein, f)
