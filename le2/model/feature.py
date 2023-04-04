@@ -15,6 +15,7 @@ def make_feature(feature_batch: dict, device: str ='cpu',
     - max_1d_distance: int, max distance to clamp the relative position.
   """
   # relative position in sequence (one hot encode)
+  feature_batch = {k: v.to(device) for k, v in feature_batch.items()}
   target_position_1d = \
     feature_batch['target_index'] + feature_batch['target_chain_id']
   neighbor_position_1d = \
