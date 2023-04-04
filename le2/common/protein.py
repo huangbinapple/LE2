@@ -121,6 +121,18 @@ class Protein:
     self.mutual_ca_distances = self._calculate_mutual_ca_distances()
     # Shape: (L, L)
     
+  def __getstate__(self):
+    state = self.__dict__.copy()
+    del state['_structure']
+    del state['_raw_string']
+    del state['_file_type']
+    del state['_atoms_info']
+    del state['_valid_residues_index']
+    return state
+    
+  def __setstate__(self, state):
+    self.__dict__.update(state)
+    
   def __len__(self) -> int:
     """Return the number of residues in the protein."""
     return len(self.atom_coords)
