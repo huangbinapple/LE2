@@ -13,6 +13,7 @@ class ResidueTypePredictor(nn.Module):
   def __init__(self, d_input, d_model=256, n_heads=4, n_layers=3,
               device='cpu'):
     super().__init__()
+    self.device = device
     # Define the input layer.
     self.input = nn.Linear(d_input, d_model, device=device)
     # Define the transformer encoder.
@@ -31,15 +32,15 @@ class ResidueTypePredictor(nn.Module):
     Return:
       - output: dict of output.
     """
+    mask = sample['mask'].to(self.device)
     output = {}
-    x = feature.make_feature(sample['features'])
+    x = feature.make_feature(sample['features'], device=self.device)
     # Shape: (B, L, 45)
     x = self.input(x)  # Shape: (B, L, 256)
-    x = self.encoder(x, src_key_padding_mask=~sample['mask'])
-    # Shape: (B, L, 256)
+    x = self.encoder(x, src_key_padding_mask=~mask) # Shape: (B, L, 256)
     # Average over the sequence length, with mask!
     x = torch.sum(x, dim=1)  # Shape: (B, 256)
-    x = x / torch.sum(sample['mask'], dim=1, keepdim=True)  # Shape: (B, 256)
+    x = x / torch.sum(mask, dim=1, keepdim=True) # Shape: (B, 256)
     x = self.head_residue_type(x)  # Shape: (B, 21)
     output['logits'] = x
     if compute_loss:
@@ -48,5 +49,6 @@ class ResidueTypePredictor(nn.Module):
   
   def loss(self, output, sample):
     """Compute loss."""
+    target_names = sample['labels']['target_name'].to(self.device)
     output['loss'] = nn.CrossEntropyLoss()(
-      output['logits'], sample['labels']['target_name'])
+      output['logits'], target_names.to(self.device))
