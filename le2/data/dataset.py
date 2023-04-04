@@ -77,7 +77,8 @@ class LocalEnvironmentDataSet(Dataset):
     return {'feature': features, 'label': label, 'meta': meta}
   
   
-def construct_dataset_from_dir(dir_path: str, cache_dir: str='') -> ConcatDataset:
+def construct_dataset_from_dir(dir_path: str, radius: float =12.0,
+                               cache_dir: str='') -> ConcatDataset:
   """
   Construct a ConcatDataset from a directory using all cif and pdb
   files in that dir, by constructing a LocalEnvironmentDataSet for each
@@ -92,7 +93,7 @@ def construct_dataset_from_dir(dir_path: str, cache_dir: str='') -> ConcatDatase
       os.listdir(dir_path)):
     try:
       dataset = LocalEnvironmentDataSet(
-        os.path.join(dir_path, file_name), cache_dir=cache_dir)
+        os.path.join(dir_path, file_name), radius=radius, cache_dir=cache_dir)
       datasets.append(dataset)
       n_loaded += 1
     except ValueError:
