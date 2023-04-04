@@ -46,7 +46,7 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
     model = structure
 
   # Initialize the lists for the output fields
-  main_chain_atoms = []
+  main_chain_atom_coords = []
   residue_names = []
   residue_indices = []
   chain_ids = []
@@ -59,7 +59,7 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
       raise ValueError('Encountered an insertion code: {} in chain {}'.format(
         residue.id, residue.get_parent().id))
     
-    residue_atoms = []
+    residue_atom_coords = []
 
     # Get the coordinates of the CA, C, and N atoms for the residue
     for atom_name in ['N', 'CA', 'C']:
@@ -68,19 +68,19 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
         coords = torch.tensor(atom.get_coord())
       except KeyError:
         coords = torch.tensor([float('nan')] * 3)
-      residue_atoms.append(coords)
+      residue_atom_coords.append(coords)
 
-    main_chain_atoms.append(residue_atoms)
+    main_chain_atom_coords.append(residue_atom_coords)
     residue_names.append(residue.get_resname())
     residue_indices.append(residue.get_id()[1])
     chain_ids.append(residue.get_parent().id)
 
-  main_chain_atoms = torch.stack(
-    [torch.stack(residue_atoms) for residue_atoms in main_chain_atoms])
+  main_chain_atom_coords = torch.stack(
+    [torch.stack(residue_atoms) for residue_atoms in main_chain_atom_coords])
 
   # Create the output dictionary
   output = {
-      'main_chain_atoms': main_chain_atoms,  # shape: (L, 3, 3)
+      'main_chain_atoms': main_chain_atom_coords,  # shape: (L, 3, 3)
       'residue_names': residue_names,  # elements: str
       'residue_indices': residue_indices,  # elements: int
       'chain_ids': chain_ids,  # elements: str
