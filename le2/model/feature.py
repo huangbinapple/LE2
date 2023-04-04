@@ -9,6 +9,10 @@ def make_feature(feature_batch: dict, device: str ='cpu',
                  max_1d_distance: int = 5) -> torch.Tensor:
   """
   Make features that fed into the model.
+  Args:
+    - feature_batch: dict of features. See le2/data/dataset.py/collate_fn.
+    - device: str, device to run the model.
+    - max_1d_distance: int, max distance to clamp the relative position.
   """
   # relative position in sequence (one hot encode)
   target_position_1d = \
