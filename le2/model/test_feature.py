@@ -18,4 +18,4 @@ class TestMakeFeature(unittest.TestCase):
     feature = make_feature(self.sample['features'])
     max_length = self.sample['features']['neighbor_names'].shape[1]
     self.assertEqual(feature.shape, (2, max_length, 45))
-    self.assertIsInstance(feature, torch.FloatTensor)
+    self.assertIsInstance(feature.dtype, torch.float32)
