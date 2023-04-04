@@ -87,7 +87,9 @@ def construct_dataset_from_dir(dir_path: str, cache_dir: str='') -> ConcatDatase
   datasets = []
   n_loaded, n_skipped = 0, 0
   tick = time.time()
-  for file_name in os.listdir(dir_path):
+  for file_name in filter(
+      lambda x: x.endswith('.cif') or x.endswith('.pdb'),
+      os.listdir(dir_path)):
     try:
       dataset = LocalEnvironmentDataSet(
         os.path.join(dir_path, file_name), cache_dir=cache_dir)
