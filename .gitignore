@@ -16,7 +16,7 @@ log/
 *.swp
 
 # Ignore dependency directories
-data/
+/data/
 playground/
 no_sync/
 **/__pycache__/
