@@ -1,4 +1,5 @@
 import logging
+import argparse
 import time
 import os
 import torch
@@ -173,3 +174,17 @@ def collate_fn(batch: list) -> dict:
   output['meta']['file_path'] = [sample['meta']['file_path'] for sample in batch]
   
   return output
+
+
+if __name__ == '__main__':
+  # Create cache for a directory
+  parser = argparse.ArgumentParser(
+    description='Create cache for a directory')
+  parser.add_argument('protein_dir', type=str, help='Path to directory')
+  parser.add_argument('cache_dir', type=str, help='Path to cache directory')
+  parser.add_argument('--radius', type=float, default=12.0,
+                      help='Radius of local environment')
+  args = parser.parse_args()
+  construct_dataset_from_dir(
+    args.protein_dir, radius=args.radius, cache_dir=args.cache_dir)
+  
