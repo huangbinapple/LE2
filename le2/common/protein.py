@@ -65,9 +65,9 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
     for atom_name in ['N', 'CA', 'C']:
       try:
         atom = residue[atom_name]
-        coords = torch.tensor(atom.get_coord())
+        coords = atom.get_coord().tolist()
       except KeyError:
-        coords = torch.tensor([float('nan')] * 3)
+        coords = [float('nan')] * 3
       residue_atom_coords.append(coords)
 
     main_chain_atom_coords.append(residue_atom_coords)
@@ -75,8 +75,7 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
     residue_indices.append(residue.get_id()[1])
     chain_ids.append(residue.get_parent().id)
 
-  main_chain_atom_coords = torch.stack(
-    [torch.stack(residue_atoms) for residue_atoms in main_chain_atom_coords])
+  main_chain_atom_coords = torch.tensor(main_chain_atom_coords)
 
   # Create the output dictionary
   output = {
