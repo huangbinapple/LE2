@@ -18,18 +18,15 @@ class LocalEnvironmentDataSet(Dataset):
     self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
-    if cache_dir is not None:
-      if not os.path.exists(cache_dir):
-        os.makedirs(cache_dir)
-      cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pkl')
-      if os.path.exists(cache_file):
-        logger.info(f"Loading cached data from {cache_file}")
-        with open(cache_file, 'rb') as f:
-          self.protein = pickle.load(f)
-        return
-      else:
-        with open(file_path) as f:
-          self.protein = Protein(f.read(), file_type)
+    cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pkl')
+    if cache_dir and os.path.exists(cache_file):
+      logger.info(f"Loading cached data from {cache_file}")
+      with open(cache_file, 'rb') as f:
+        self.protein = pickle.load(f)
+    else:
+      with open(file_path) as f:
+        self.protein = Protein(f.read(), file_type)
+      if cache_dir:
         logger.info(f"Saving data to {cache_file}")
         with open(cache_file, 'wb') as f:
           pickle.dump(self.protein, f)
