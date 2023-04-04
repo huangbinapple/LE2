@@ -2,7 +2,7 @@ import logging
 
 
 LOG_FILE_PATH = 'log/log.txt'
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.INFO
 LOG_NAME = 'le2'
 
 # Create a logger and set its level to DEBUG

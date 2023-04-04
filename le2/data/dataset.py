@@ -14,13 +14,13 @@ logger = logging.getLogger(config.LOG_NAME)
 
 class LocalEnvironmentDataSet(Dataset):
   def __init__(self, file_path: str, radius: float =12.0, cache_dir: str =''):
-    logger.info(f"Loading data from {file_path}..., radius={radius}")
+    logger.debug(f"Loading data from {file_path}..., radius={radius}")
     self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
     cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pkl')
     if cache_dir and os.path.exists(cache_file):
-      logger.info(f"Loading cached data from {cache_file}")
+      logger.debug(f"Loading cached data from {cache_file}")
       with open(cache_file, 'rb') as f:
         self.protein = pickle.load(f)
     else:
@@ -30,10 +30,10 @@ class LocalEnvironmentDataSet(Dataset):
         # If dir not exist, make one.
         if not os.path.exists(cache_dir):
           os.makedirs(cache_dir)
-        logger.info(f"Saving data to {cache_file}")
+        logger.debug(f"Saving data to {cache_file}")
         with open(cache_file, 'wb') as f:
           pickle.dump(self.protein, f)
-    logger.info(f"Loaded {len(self.protein)} residues from {file_path}")
+    logger.debug(f"Loaded {len(self.protein)} residues from {file_path}")
     
   def __len__(self) -> int:
     return len(self.protein)
