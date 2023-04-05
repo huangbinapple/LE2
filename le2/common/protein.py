@@ -5,6 +5,7 @@ import Bio  # type: ignore
 from Bio.PDB import PDBParser, FastMMCIFParser  # type: ignore
 import torch
 from le2 import config
+from le2.common import utils
 
 
 logger = logging.getLogger(config.LOG_NAME)
@@ -91,6 +92,8 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
 
 class Protein:
   """Protein structure representation."""
+  
+  big_distance = 15.0  # Angstroms
 
   def __init__(self, raw_string: str, file_type: str ='pdb'):
     """Initialize a Protein object.
@@ -147,14 +150,15 @@ class Protein:
     handle = io.StringIO(self._raw_string)
     return parser.get_structure('protein', handle)
   
-  def _calculate_mutual_ca_distances(self) -> torch.tensor:
+  def _calculate_mutual_ca_distances(self) -> torch.Tensor:
     """Calculate the distances between all pairs of CA atoms in the protein."""
     # Calculate the distances between all pairs of CA atoms
     ca_atoms = self.atom_coords[:, 1, :]  # size: (L, 3)
     logger.debug(f'Calculating the distances between all pairs '\
                  f'({len(ca_atoms)}) of CA atoms...')
     distances = torch.cdist(ca_atoms, ca_atoms)
-    return distances  # shape: (L, L)
+    distances = utils.convert_to_sparse_coo(distances, self.big_distance)
+    return distances  # shape: (L, L), type: torch.sparse_coo
   
   def get_neighbor_indicies(
       self, residue_index: int, cutoff: float =12.0) -> torch.tensor:
@@ -168,10 +172,11 @@ class Protein:
     - neighbors (torch.tensor): a troch tensor of type int containing the
     indices of the neighboring redidues
     """
-    # Add cutoff to the diagonal to avoid self-neighborship
-    ca_distances = self.mutual_ca_distances +\
-      torch.eye(self.mutual_ca_distances.shape[0]) * cutoff
-    return (ca_distances[residue_index] < cutoff).nonzero().squeeze()
+    assert cutoff < self.big_distance, 'The cutoff distance is too big.'
+    ca_distances = self.mutual_ca_distances[residue_index].to_dense()
+    # Get values's index whose value ins between 0 and cutoff
+    index = (ca_distances > 0) & (ca_distances < cutoff)
+    return index.nonzero().squeeze()
 
 
 if __name__ == '__main__':
