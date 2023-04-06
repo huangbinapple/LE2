@@ -43,8 +43,9 @@ class ResidueTypePredictor(nn.Module):
     # Average over the sequence length, with mask!
     x = torch.sum(x, dim=1)  # Shape: (B, 256)
     x = x / torch.sum(mask, dim=1, keepdim=True) # Shape: (B, 256)
-    x = self.head_residue_type(x)  # Shape: (B, 21)
-    output['logits'] = x
+    logits = self.head_residue_type(x)  # Shape: (B, 21)
+    output['logit'] = logits
+    
     if compute_loss:
       self.loss(output, sample)
     return output
@@ -52,5 +53,5 @@ class ResidueTypePredictor(nn.Module):
   def loss(self, output, sample):
     """Compute loss."""
     target_names = sample['labels']['target_name'].to(self.device)
-    output['loss'] = nn.CrossEntropyLoss()(
-      output['logits'], target_names.to(self.device))
+    output['loss'] = nn.CrossEntropyLoss(reduction='none')(
+      output['logit'], target_names.to(self.device))
