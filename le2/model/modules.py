@@ -31,6 +31,8 @@ class ResidueTypePredictor(nn.Module):
         - mask: torch.Tensor of mask. Shape: (B, L)
     Return:
       - output: dict of output.
+        - logits: torch.Tensor of logits. Shape: (B, 21)
+        - loss (if compute_loss): torch.Tensor of loss. Shape: ()
     """
     mask = sample['mask'].to(self.device)
     output = {}
