@@ -108,7 +108,7 @@ class Protein:
     self._atoms_info = extract_main_chain_atoms(self._structure)
     self._valid_residues_index =\
       (~self._atoms_info['main_chain_atoms'].sum(dim=(1, 2)).isnan()).\
-        nonzero().squeeze()
+        nonzero().squeeze(-1)
     self.atom_coords =\
       self._atoms_info['main_chain_atoms'][self._valid_residues_index]
       # shape: (L, 3, 3)
@@ -176,7 +176,7 @@ class Protein:
     ca_distances = self.mutual_ca_distances[residue_index].to_dense()
     # Get values's index whose value ins between 0 and cutoff
     index = (ca_distances > 0) & (ca_distances < cutoff)
-    return index.nonzero().squeeze()
+    return index.nonzero().squeeze(-1)
 
 
 if __name__ == '__main__':
