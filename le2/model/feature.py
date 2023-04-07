@@ -43,8 +43,8 @@ def make_feature(feature_batch: dict, device: str ='cpu',
   # Shape: (B, L, 21)
   
   # is on the same chain
-  is_same_chain = feature_batch['neighbor_chain_ids'] - \
-    feature_batch['target_chain_id'].unsqueeze(1)
+  is_same_chain = (feature_batch['neighbor_chain_ids'] == \
+          feature_batch['target_chain_id'].unsqueeze(1))
   # Shape: (B, L)
   is_same_chain = is_same_chain.unsqueeze(-1)
   # Shape: (B, L, 1)
