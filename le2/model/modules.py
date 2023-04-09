@@ -34,7 +34,7 @@ class ResidueTypePredictor(nn.Module):
     Return:
       - output: dict of output.
         - logits: torch.Tensor of logits. Shape: (B, 21)
-        - loss (if compute_loss): torch.Tensor of loss. Shape: ()
+        - loss (if compute_loss): torch.Tensor of loss. Shape: (B,)
     """
     mask = sample['mask'].to(self.device)
     output = {}
@@ -69,7 +69,7 @@ class ResidueTypePredictor(nn.Module):
       target_names = sample['labels']['target_name'].to(self.device)
       if output_loss:
         output['loss'] = nn.CrossEntropyLoss(reduction='none')(
-        logits, target_names.to(self.device))      
+        logits, target_names.to(self.device))  # Shape: (B,)
       if output_ncorrect:
         output['ncorrect'] = (predicted_rtypes == target_names).sum()
       
