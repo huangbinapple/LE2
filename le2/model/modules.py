@@ -71,6 +71,6 @@ class ResidueTypePredictor(nn.Module):
         output['loss'] = nn.CrossEntropyLoss(reduction='none')(
         logits, target_names.to(self.device))  # Shape: (B,)
       if output_ncorrect:
-        output['ncorrect'] = (predicted_rtypes == target_names).sum()
+        output['ncorrect'] = (predicted_rtypes == target_names).sum().item()
       
     return output
