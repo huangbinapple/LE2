@@ -1,22 +1,15 @@
 import logging
 
 
-LOG_FILE_PATH = 'log/log.txt'
-LOG_LEVEL = logging.DEBUG
+# Create a logger.
 LOG_NAME = 'le2'
-
-# Create a logger and set its level to DEBUG
 logger = logging.getLogger(LOG_NAME)
-logger.setLevel(LOG_LEVEL)
 
-# Create a file handler and set its level to DEBUG
-fh = logging.FileHandler(LOG_FILE_PATH)
-fh.setLevel(LOG_LEVEL)
-
-# Create a formatter and add it to the handler
 formatter = logging.Formatter(
   '%(asctime)s\t%(name)s@%(module)-10s\t%(levelname)-8s%(message)s')
-fh.setFormatter(formatter)
 
-# Add the handler to the logger
-logger.addHandler(fh)
+def add_file_handler(logger, log_file, log_level):
+  fh = logging.FileHandler(log_file)
+  fh.setLevel(log_level)
+  fh.setFormatter(formatter)
+  logger.addHandler(fh)

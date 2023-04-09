@@ -192,7 +192,17 @@ if __name__ == '__main__':
   parser.add_argument('cache_dir', type=str, help='Path to cache directory')
   parser.add_argument('--radius', type=float, default=12.0,
                       help='Radius of local environment')
+  parser.add_argument('--log', type=str)
+  parser.add_argument('--log_level', type=str, default='INFO',)
   args = parser.parse_args()
+  
+  logger.setLevel(args.log_level)
+  # Set up logging
+  if args.log is None:
+    logger.addHandler(logging.NullHandler())
+  else:
+    log.add_file_handler(logger, args.log, args.log_level)
+  
   construct_dataset_from_dir(
     args.protein_dir, radius=args.radius, cache_dir=args.cache_dir)
   
