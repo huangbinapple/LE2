@@ -5,9 +5,7 @@ import json
 import logging
 
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
 
 from le2.data.dataset import construct_dataset_from_dir
 from le2.data.dataset import collate_fn
