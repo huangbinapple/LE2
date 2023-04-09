@@ -4,11 +4,10 @@ import io
 import Bio  # type: ignore
 from Bio.PDB import PDBParser, FastMMCIFParser  # type: ignore
 import torch
-from le2 import config
+from le2.common import log
 from le2.common import utils
 
-
-logger = logging.getLogger(config.LOG_NAME)
+logger = log.logger
 
 
 def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:

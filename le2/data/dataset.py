@@ -7,10 +7,10 @@ import pickle
 from torch.utils.data import Dataset, ConcatDataset
 from le2.common.protein import Protein
 from le2.common import residue_constants as rc
-from le2 import config
+from le2.common import log
 from torch.nn.utils.rnn import pad_sequence
 
-logger = logging.getLogger(config.LOG_NAME)
+logger = log.logger
 
 
 class LocalEnvironmentDataSet(Dataset):
