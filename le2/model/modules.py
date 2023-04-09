@@ -43,7 +43,8 @@ class ResidueTypePredictor(nn.Module):
     x = self.input(x)  # Shape: (B, L, 256)
     x = self.encoder(x, src_key_padding_mask=~mask) # Shape: (B, L, 256)
     # Average over the sequence length, with mask!
-    x = torch.sum(x, dim=1)  # Shape: (B, 256)
+    x = torch.sum(x * mask.unsqueeze(-1), dim=1)  # Shape: (B, 256)
+    # x = torch.sum(x * mask.unsq, dim=1)  # Shape: (B, 256)
     x = x / torch.sum(mask, dim=1, keepdim=True) # Shape: (B, 256)
     logits = self.head_residue_type(x)  # Shape: (B, 21)
     
