@@ -127,7 +127,8 @@ def main(args):
     dataset_train, batch_size=batch_size, shuffle=True, collate_fn=collate_fn,
     num_workers=nworker, pin_memory=True)
   dl_validate = DataLoader(
-    dataset_validate, batch_size=batch_size, collate_fn=collate_fn)
+    dataset_validate, batch_size=batch_size, collate_fn=collate_fn,
+    num_workers=nworker, pin_memory=True)
   
   # Define the model
   d_feature = 45
