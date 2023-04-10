@@ -235,8 +235,8 @@ def main(args):
         
       # Exit model evaluation mode
       model.train()
+  if not stop_train:  
     logger.info(f'Training stop, reached the maximum number of epochs.')
-      
   logger.info(
     f'Total training time: {time.time() - training_start_time:.2f} s')
       
