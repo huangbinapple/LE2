@@ -274,11 +274,11 @@ if __name__ == '__main__':
   parser.add_argument('-N', '--nworker', type=int, default=8,
                       help='Number of workers, default: 8')
   ## Other parameters
-  parser.add_argument('--config', type=str,
+  parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')
-  parser.add_argument('--work_dir', type=str, default='new_trainig',
+  parser.add_argument('-W', '--work_dir', type=str, default='new_trainig',
                       help='Path to working directory, default: new_training')
-  parser.add_argument('--log_level', type=str, default='INFO')
+  parser.add_argument('-l', '--log_level', type=str, default='INFO')
   
   # Parse arguments for the first time.
   args = parser.parse_args()
