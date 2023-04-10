@@ -135,6 +135,9 @@ def main(args):
   model = ResidueTypePredictor(d_feature, d_model, nhead, nlayer, device)
   # Prepare model for training.
   optimizer = torch.optim.Adam(model.parameters())
+  # Log model parameters number
+  nparams = utils.count_parameters(model) / 1024 ** 2  # in Million
+  logger.info(f'Model parameters number: {nparams:.2f} Million.')
   
   global_nsample = 0
   stop_train = False
@@ -197,6 +200,7 @@ def main(args):
         
         # Enter model evaluation mode
         model.eval()
+        logger.info('Start validation ...')
         
         with torch.no_grad():
           validate_loss, validate_ncorrect, validate_nsample = 0, 0, 0
@@ -208,6 +212,9 @@ def main(args):
           # Calculate the average validation loss and accuracy.
           validation_loss = validate_loss / validate_nsample
           validation_acc = validate_ncorrect / validate_nsample
+          # log model performance.
+          logger.info(f'Validated on {validate_nsample} samples '
+                      f'in {time.time() - validate_timer:.2f} seconds.')
           # log the validation loss and accuracy.
           logger.info(f'Epoch: {epoch_portion:.4f} / {nepoch}: '
                       f'nsample_trained: {global_nsample}, '
