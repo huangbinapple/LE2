@@ -13,3 +13,8 @@ def add_file_handler(logger, log_file, log_level):
   fh.setLevel(log_level)
   fh.setFormatter(formatter)
   logger.addHandler(fh)
+  
+def add_stream_handler(logger, log_level):
+  stream_handler = logging.StreamHandler()
+  stream_handler.setLevel(log_level)
+  logger.addHandler(stream_handler)

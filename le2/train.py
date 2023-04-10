@@ -11,6 +11,7 @@ from le2.data.dataset import construct_dataset_from_dir
 from le2.data.dataset import collate_fn
 from le2.model.modules import ResidueTypePredictor
 from le2.common import log
+from le2.common import utils
 
 logger = log.logger
 
@@ -293,9 +294,7 @@ if __name__ == '__main__':
   # Set gloabl log level
   logger.setLevel(args.log_level)
   # Set stream handler
-  stream_handler = logging.StreamHandler()
-  stream_handler.setLevel(args.log_level)
-  logger.addHandler(stream_handler)
+  log.add_stream_handler(logger, args.log_level)
   # Set file handler
   log_path = os.path.join(args.work_dir, 'train.log')
   log.add_file_handler(logger, log_path, args.log_level)
