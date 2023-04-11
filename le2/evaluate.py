@@ -62,8 +62,6 @@ def evaluate(model, dataloader, **kwargs):
     return output
 
 def main(args):
-  # print(vars(args))
-  # return
   # Create model.
   model = ResidueTypePredictor(
     args.input_dim, args.d_model, args.nhead, args.nlayer, args.device)
@@ -85,6 +83,10 @@ if __name__ == '__main__':
   ## Dataset parameters
   parser.add_argument('-E', '--evaluate_path', type=str,
                       help='File or directory to evaluate')
+  parser.add_argument('-c', '--cache', action='store_true',
+                      help='Create/load cache file for faster loading')
+  parser.add_argument('--no-cache', action='store_false', dest='cache',
+                      help='Do not create/load cache file for faster loading')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')
@@ -98,12 +100,8 @@ if __name__ == '__main__':
                       help='Path to the model to evaluate')
   parser.add_argument('-d', '--device', type=str, default='cpu',
                       help='Device, default: cpu')
-  parser.add_argument('-c', '--cache', action='store_true',
-                      help='Create/load cache file for faster loading')
-  parser.add_argument('--no-cache', action='store_false', dest='cache',
-                      help='Do not create/load cache file for faster loading')
-  parser.add_argument('-l', '--log_level', type=str, default='INFO')
   ## Other parameters
+  parser.add_argument('-l', '--log_level', type=str, default='INFO')
   parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')
   
