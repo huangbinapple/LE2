@@ -46,7 +46,7 @@ class SequenceDesigner():
     logger.debug(f'predicted_rtype: {self.predicted_rtype}')
     neighbor_index = set()
     # Change residues at index to predicted type and collect affected neighbors.
-    for i, residue_index in zip(index, self.predicted_rtype):
+    for i, residue_index in zip(index, self.predicted_rtype[index]):
       logger.debug(f"i: {i}, residue_index: {residue_index}")
       predict_seq = ''.join(rc.restypes[i] for i in self.predicted_rtype)
       logger.debug(f'predicted sequence:\t {predict_seq}')
