@@ -294,6 +294,8 @@ if __name__ == '__main__':
   args = parser.parse_args()
   
   # Turn relative path to absolute path.
+  if args.train_dir is None or args.validate_dir is None:
+    raise ValueError('Please specify the path to training and validation data.')
   args.train_dir = os.path.realpath(args.train_dir)
   args.validate_dir = os.path.realpath(args.validate_dir)
   args.work_dir = os.path.realpath(args.work_dir)
