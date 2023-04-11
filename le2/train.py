@@ -289,6 +289,7 @@ if __name__ == '__main__':
   if args.config:
     with open(args.config, 'r') as f:
         config = json.load(f) 
+        config = {k: v for k, v in config.items() if v in args}
     parser.set_defaults(**config)
   # Parse arguments again for overwriting config file.
   args = parser.parse_args()
