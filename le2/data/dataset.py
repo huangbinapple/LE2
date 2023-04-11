@@ -106,7 +106,7 @@ def construct_dataset_from_dir(
       datasets.append(dataset)
       n_loaded += 1
     except ValueError as e:
-      logger.warning(f"Could not load {file_name} {e}")
+      logger.warning(f"Could not load {file_name}: {e}")
       n_skipped += 1
   tock = time.time()
   output = ConcatDataset(datasets)

@@ -56,7 +56,7 @@ def extract_main_chain_atoms(structure: Bio.PDB.Structure.Structure) -> dict:
     if residue.id[0] != ' ':  # Ignore hetero residues
       continue
     if residue.id[2] != ' ':  # Encountered an insertion code
-      raise ValueError('Encountered an insertion code: {} in chain {}'.format(
+      raise ValueError('Encountered an insertion code {} in chain {}'.format(
         residue.id, residue.get_parent().id))
     
     residue_atom_coords = []
