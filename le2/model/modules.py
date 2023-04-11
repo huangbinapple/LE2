@@ -25,7 +25,7 @@ class ResidueTypePredictor(nn.Module):
 
   def forward(self, sample: dict, output_loss=False,
               output_logit=False, output_confidence=False,
-              output_predicted_rtype=False, output_ncorrect=False) -> dict:
+              output_predicted_rtype=False, output_iscorrect=False) -> dict:
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
@@ -51,7 +51,7 @@ class ResidueTypePredictor(nn.Module):
     # Calculation only depends on the logits.
     if output_logit:
       output['logit'] = logits
-    if output_predicted_rtype or output_ncorrect:
+    if output_predicted_rtype or output_iscorrect:
       predicted_rtypes = torch.argmax(logits, dim=1)  # Shape: (B,)
       if output_predicted_rtype:
         output['predicted_rtype'] = predicted_rtypes
@@ -65,12 +65,12 @@ class ResidueTypePredictor(nn.Module):
         output['confidence'] = confidence
     
     # Calculation depends on the target.
-    if output_loss or output_ncorrect:
+    if output_loss or output_iscorrect:
       target_names = sample['labels']['target_name'].to(self.device)
       if output_loss:
         output['loss'] = nn.CrossEntropyLoss(reduction='none')(
         logits, target_names.to(self.device))  # Shape: (B,)
-      if output_ncorrect:
-        output['ncorrect'] = (predicted_rtypes == target_names).sum().item()
+      if output_iscorrect:
+        output['iscorrect'] = predicted_rtypes == target_names
       
     return output

@@ -163,14 +163,14 @@ def main(args):
 
       # Train the model for one step.
       optimizer.zero_grad()
-      result = model(batch, output_loss=True, output_ncorrect=True)
+      result = model(batch, output_loss=True, output_iscorrect=True)
       loss_mean = result['loss'].mean()
       loss_mean.backward()
       optimizer.step()
       
       # Update the variables for logging.
       local_loss += result['loss'].sum().item()
-      local_ncorrect += result['ncorrect']
+      local_ncorrect += result['iscorrect'].sum().item()
       local_nsample += len(result['loss'])
       
       # Update gloabl variables.
