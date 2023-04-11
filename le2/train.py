@@ -261,6 +261,9 @@ if __name__ == '__main__':
   parser.add_argument('-A', '--autostop', action='store_true', default=False,
                       help='Stop training if validation accuracy is not improved'
                       '(Worse than 3 stored models), default: False')
+  parser.add_argument('--no-autostop', dest='autostop', action='store_false',
+                      help='Disable automatic stopping of training if validation'
+                      ' accuracy is worse than 3 stored models')
   parser.add_argument('-s', '--nsave', type=int, default=5,
                       help='Number of best models to store, default: 5')
   parser.add_argument('-p', '--print_period', type=int, default=10,
