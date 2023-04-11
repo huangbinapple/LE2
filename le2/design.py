@@ -30,20 +30,34 @@ class SequenceDesigner():
     # Set each position to a random residue type.
     for i in range(len(self.seq)):
       self.seq[i] = rc.resnames[random.randint(0, 19)]
+    logger.debug('Randomly initialized sequence ...')
+    logger.debug(f'current sequence:\t {self.long_to_short_seq(self.seq)}')
     
   def _iter(self, index):
     """Change residues at index to their predicted rtype."""
     if self.dataset is None:
       raise ValueError('No dataset loaded')
+    logger.debug("Sequence index: \t " + ''.join(str(i) * 10 for i in range(10)))
+    logger.debug("Sequence index: \t " + (''.join(str(i) for i in range(10))) * 10)
+    logger.debug(f'current sequence:\t {self.long_to_short_seq(self.seq)}')
+    predict_seq = ''.join(rc.restypes[i] for i in self.predicted_rtype)
+    logger.debug(f'predicted sequence:\t {predict_seq}')
+    logger.debug(f'index to change:\t {index}')
+    logger.debug(f'predicted_rtype: {self.predicted_rtype}')
     neighbor_index = set()
-    # Change residues and collect affected neighbors.
+    # Change residues at index to predicted type and collect affected neighbors.
     for i, residue_index in zip(index, self.predicted_rtype):
+      logger.debug(f"i: {i}, residue_index: {residue_index}")
+      predict_seq = ''.join(rc.restypes[i] for i in self.predicted_rtype)
+      logger.debug(f'predicted sequence:\t {predict_seq}')
       original_residue = self.seq[i]
       self.seq[i] = rc.resnames[residue_index]
       logger.debug(
-        f"Residue {i}({original_residue}) changed to {rc.resnames[residue_index]}")
+        f"{i}: {rc.restype_3to1[original_residue]}({original_residue}) -> "
+        f"{rc.restypes[residue_index]}({rc.resnames[residue_index]})")
       neighbor_index.update(
         self.protein.get_neighbor_indicies(i, self.radius).tolist())
+    logger.debug(f"sequence updated: \t {self.long_to_short_seq(self.seq)}")
     neighbor_index = list(neighbor_index)
     # Update neighbors' states.
     update_output = self._predict(neighbor_index)
@@ -51,10 +65,8 @@ class SequenceDesigner():
     self.loss[neighbor_index] = update_output['loss']
     self.predicted_rtype[neighbor_index] = update_output['predicted_rtype']
     logger.debug(f"Updated {len(neighbor_index)} residues")
-    logger.debug(f'current sequence:\t {self.long_to_short_seq(self.seq)}')
-    predict_seq = ''.join(rc.restypes[i] for i in self.predicted_rtype)
-    logger.debug(f'predicted sequence:\t {predict_seq}')
     logger.debug(f"loss: {self.get_loss()}; accuracy: {self.get_accuracy()}")
+    logger.debug('\n')
     
   def _predict(self, index=None):
     if self.dataset is None:
@@ -63,7 +75,7 @@ class SequenceDesigner():
       dataset = Subset(self.dataset, index)
     else:
       dataset = self.dataset
-    logger.debug(f"Predicting {len(dataset)} residues")
+    logger.debug(f"Predicting {len(dataset)} residues ...")
     dl = DataLoader(dataset, batch_size=len(dataset), collate_fn=collate_fn)
     batch = next(iter(dl))
     with torch.no_grad():
@@ -87,18 +99,16 @@ class SequenceDesigner():
     self.seq = self.protein.residue_names
     self.original_seq = self.seq.copy()
     self._initialize_seq()
-    logger.debug(f"Initialized sequence: {self.seq}")
+
     inital_output = self._predict()
     self.is_correct = inital_output['iscorrect']
     self.loss = inital_output['loss']
     self.predicted_rtype = inital_output['predicted_rtype']
-    init_acc = sum((self.seq[i] == self.original_seq[i]
-                    for i in range(len(self.seq)))) / len(self.seq)
-    logger.debug(f"Initial accuracy: {init_acc}")
     
   def design(self, seed=42):
     """Design the sequence."""
     # Set seed.
+    logger.debug('Start designing ...')
     random.seed(seed)
     ticker = time.time()
     niter = 0
@@ -107,8 +117,6 @@ class SequenceDesigner():
     schedule = stage_1_length * [5] + stage_2_length * [1]
     for niter, num_change in enumerate(schedule):
       logger.debug(f"iter: {niter + 1}")
-      accuracy = self.is_correct.sum().item() / len(self.seq)
-      logger.debug(f"accuracy: {accuracy}")
       incorrect_index = (~self.is_correct).nonzero().squeeze(-1).tolist()
       index_to_change = random.sample(incorrect_index, num_change)
       self._iter(index_to_change)
