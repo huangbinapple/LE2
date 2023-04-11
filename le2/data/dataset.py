@@ -18,14 +18,16 @@ class LocalEnvironmentDataSet(Dataset):
   def __init__(self,
                file_path: str,  # Path to the PDB/CIF file
                radius: float =12.0,  # Radius of the local environment
-               cache_dir: str =''):  # Path to the cache directory
+               cache: bool=False):  # Path to the cache directory
     logger.debug(f"Loading data from {file_path}..., radius={radius}")
     self.radius = radius
     self.file_path = file_path
     file_type = file_path.split('.')[-1]
+    # cache_dir is the directory of the file path.
+    cache_dir = os.path.dirname(file_path)
     cache_file = os.path.join(cache_dir, os.path.basename(file_path) + '.pkl')
     # If cache file exists, load from it.
-    if cache_dir and os.path.exists(cache_file):
+    if cache and os.path.exists(cache_file):
       logger.debug(f"Loading cached data from {cache_file}")
       with open(cache_file, 'rb') as f:
         self.protein = pickle.load(f)
@@ -33,10 +35,8 @@ class LocalEnvironmentDataSet(Dataset):
       # Otherwise, load from the file.
       with open(file_path) as f:
         self.protein = Protein(f.read(), file_type)
-      if cache_dir:  # cache option is enabled
+      if cache:  # cache option is enabled
         # Save the data to cache file.
-        if not os.path.exists(cache_dir):
-          os.makedirs(cache_dir)
         logger.debug(f"Saving data to {cache_file}")
         with open(cache_file, 'wb') as f:
           pickle.dump(self.protein, f)
@@ -87,7 +87,7 @@ class LocalEnvironmentDataSet(Dataset):
 def construct_dataset_from_dir(
   dir_path: str,
   radius: float =12.0,
-  cache_dir: str='') -> ConcatDataset:
+  cache: bool=False) -> ConcatDataset:
   """
   Construct a ConcatDataset from a directory using all cif and pdb
   files in that dir, by constructing a LocalEnvironmentDataSet for each
@@ -102,7 +102,7 @@ def construct_dataset_from_dir(
       os.listdir(dir_path)):
     try:
       dataset = LocalEnvironmentDataSet(
-        os.path.join(dir_path, file_name), radius=radius, cache_dir=cache_dir)
+        os.path.join(dir_path, file_name), radius=radius, cache=cache)
       datasets.append(dataset)
       n_loaded += 1
     except ValueError as e:

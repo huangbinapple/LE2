@@ -120,9 +120,9 @@ def main(args):
   
   # Create training and validation datasets and dataloaders
   dataset_train = construct_dataset_from_dir(
-    train_dir, cache_dir='/mnt/sddata/huangbin/pdb40/train_le_cache')
+    train_dir, cache=True)
   dataset_validate = construct_dataset_from_dir(
-    validate_dir, cache_dir='/mnt/sddata/huangbin/pdb40/validate_le')
+    validate_dir, chache=True)
   dl_train = DataLoader(
     dataset_train, batch_size=batch_size, shuffle=True, collate_fn=collate_fn,
     num_workers=nworker, pin_memory=True)
