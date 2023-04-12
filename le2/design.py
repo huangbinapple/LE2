@@ -55,6 +55,7 @@ class SequenceDesigner():
         self.protein.get_neighbor_indicies(i, self.radius).tolist())
     logger.debug(f"sequence updated: \t {self.long_to_short_seq(self.seq)}")
     neighbor_index = list(neighbor_index)
+    self.is_correct[index] = True
     # Update neighbors' states.
     update_output = self._predict(neighbor_index)
     self.is_correct[neighbor_index] = update_output['iscorrect']
@@ -119,7 +120,10 @@ class SequenceDesigner():
     for niter, num_change in enumerate(schedule):
       logger.debug(f"iter: {niter + 1}")
       incorrect_index = (~self.is_correct).nonzero().squeeze(-1).tolist()
-      index_to_change = random.sample(incorrect_index, num_change)
+      if len(incorrect_index) == 0:
+        break
+      index_to_change = random.sample(
+        incorrect_index, min(len(incorrect_index), num_change))
       self._iter(index_to_change)
     logger.info(f"Designed a sequence of length {len(self.seq)} "
                 f"in {time.time() - ticker:.2f} seconds")
