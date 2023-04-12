@@ -32,6 +32,10 @@ class SequenceDesigner():
       self.seq[i] = rc.resnames[random.randint(0, 19)]
     logger.debug('Randomly initialized sequence ...')
     logger.debug(f'current sequence:\t {self.long_to_short_seq(self.seq)}')
+    inital_output = self._predict()
+    self.is_correct = inital_output['iscorrect']
+    self.loss = inital_output['loss']
+    self.predicted_rtype = inital_output['predicted_rtype']
     
   def _iter(self, index):
     """Change residues at index to their predicted rtype."""
@@ -100,19 +104,15 @@ class SequenceDesigner():
     self.protein = self.dataset.protein
     self.seq = self.protein.residue_names
     self.original_seq = self.seq.copy()
-    self._initialize_seq()
-
-    inital_output = self._predict()
-    self.is_correct = inital_output['iscorrect']
-    self.loss = inital_output['loss']
-    self.predicted_rtype = inital_output['predicted_rtype']
     
   def design(self, seed=42):
     """Design the sequence."""
     # Set seed.
+    ticker = time.time()
     logger.debug('Start designing ...')
     random.seed(seed)
-    ticker = time.time()
+    self._initialize_seq()
+    
     niter = 0
     stage_1_length = int(len(self.seq) / 1)
     stage_2_length = int(len(self.seq) / 5)
