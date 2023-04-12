@@ -40,16 +40,12 @@ class SequenceDesigner():
     logger.debug("Sequence index: \t " + ''.join(str(i) * 10 for i in range(10)))
     logger.debug("Sequence index: \t " + (''.join(str(i) for i in range(10))) * 10)
     logger.debug(f'current sequence:\t {self.long_to_short_seq(self.seq)}')
-    predict_seq = ''.join(rc.restypes[i] for i in self.predicted_rtype)
-    logger.debug(f'predicted sequence:\t {predict_seq}')
+    logger.debug(f'predicted sequence:\t '
+                 f"{''.join(rc.restypes[i] for i in self.predicted_rtype)}")
     logger.debug(f'index to change:\t {index}')
-    logger.debug(f'predicted_rtype: {self.predicted_rtype}')
     neighbor_index = set()
     # Change residues at index to predicted type and collect affected neighbors.
     for i, residue_index in zip(index, self.predicted_rtype[index]):
-      logger.debug(f"i: {i}, residue_index: {residue_index}")
-      predict_seq = ''.join(rc.restypes[i] for i in self.predicted_rtype)
-      logger.debug(f'predicted sequence:\t {predict_seq}')
       original_residue = self.seq[i]
       self.seq[i] = rc.resnames[residue_index]
       logger.debug(
@@ -66,16 +62,21 @@ class SequenceDesigner():
     self.predicted_rtype[neighbor_index] = update_output['predicted_rtype']
     logger.debug(f"Updated {len(neighbor_index)} residues")
     logger.debug(f"loss: {self.get_loss()}; accuracy: {self.get_accuracy()}")
+    logger.debug(f"is_correct: \t\t "
+                 f"{''.join(map(str, self.is_correct.type(torch.int).tolist()))}")
     logger.debug('\n')
     
   def _predict(self, index=None):
+    # indicator = torch.zeros(len(self.dataset), dtype=torch.int)  # For log.
     if self.dataset is None:
       raise ValueError('No dataset loaded')
     if index:
       dataset = Subset(self.dataset, index)
     else:
       dataset = self.dataset
-    logger.debug(f"Predicting {len(dataset)} residues ...")
+    # indicator[index] = 1
+    # logger.debug(f"Update {len(dataset)} residues: \t "
+    #              f"{''.join(map(str, indicator.tolist()))}")
     dl = DataLoader(dataset, batch_size=len(dataset), collate_fn=collate_fn)
     batch = next(iter(dl))
     with torch.no_grad():
