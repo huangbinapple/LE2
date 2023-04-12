@@ -1,3 +1,5 @@
+from typing import Iterator, Sequence
+from torch.utils.data.sampler import Sampler
 import torch
 
 
@@ -19,3 +21,23 @@ def convert_to_sparse_coo(tensor, cutoff):
   sparse_tensor = torch.sparse_coo_tensor(indices.t(), values, size=tensor.shape)
   
   return sparse_tensor
+
+
+class FixedOrderSampler(Sampler[int]):
+  r"""Samples elements from a given list of indices in a fixed order,
+    without replacement. A modified version of SubsetRandomSampler.
+
+  Args:
+    indices (sequence): a sequence of indices
+  """
+  indices: Sequence[int]
+
+  def __init__(self, indices: Sequence[int]) -> None:
+    self.indices = indices
+
+  def __iter__(self) -> Iterator[int]:
+    for i in range(len(self.indices)):
+      yield self.indices[i]
+
+  def __len__(self) -> int:
+    return len(self.indices)

@@ -10,6 +10,7 @@ from le2.model.modules import ResidueTypePredictor
 from le2.data.dataset import LocalEnvironmentDataSet, collate_fn, \
   construct_dataset_from_dir
 from le2.common import residue_constants as rc
+from le2.common.utils import FixedOrderSampler
 
 logger = log.logger
 
@@ -24,6 +25,7 @@ class SequenceDesigner():
     self.is_correct = None
     self.loss = None
     self.predicted_rtype = None
+    self._subset_sampler = FixedOrderSampler([])
     
   def _initialize_seq(self):
     """Randomly initialize the sequence."""
@@ -75,15 +77,13 @@ class SequenceDesigner():
     # indicator = torch.zeros(len(self.dataset), dtype=torch.int)  # For log.
     if self.dataset is None:
       raise ValueError('No dataset loaded')
-    if index:
-      dataset = Subset(self.dataset, index)
-    else:
-      dataset = self.dataset
+    if index is None:
+      index = range(len(self.dataset))
     # indicator[index] = 1
     # logger.debug(f"Update {len(dataset)} residues: \t "
     #              f"{''.join(map(str, indicator.tolist()))}")
-    dl = DataLoader(dataset, batch_size=len(dataset), collate_fn=collate_fn)
-    batch = next(iter(dl))
+    self._subset_sampler.indices = index
+    batch = next(iter(self.dl))
     with torch.no_grad():
       output = self.model(batch, output_iscorrect=True,
                           output_loss=True, output_predicted_rtype=True)
@@ -101,6 +101,8 @@ class SequenceDesigner():
     
   def load_file(self, file_path):
     self.dataset = LocalEnvironmentDataSet(file_path)
+    self.dl = DataLoader(self.dataset, batch_size=len(self.dataset),
+                         sampler=self._subset_sampler, collate_fn=collate_fn)
     self.protein = self.dataset.protein
     self.seq = self.protein.residue_names
     self.original_seq = self.seq.copy()
