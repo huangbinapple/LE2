@@ -45,12 +45,12 @@ class SequenceDesigner():
     logger.debug(f'index to change:\t {index}')
     neighbor_index = set()
     # Change residues at index to predicted type and collect affected neighbors.
-    for i, residue_index in zip(index, self.predicted_rtype[index]):
+    for i, rtype_index in zip(index, self.predicted_rtype[index]):
       original_residue = self.seq[i]
-      self.seq[i] = rc.resnames[residue_index]
+      self.seq[i] = rc.resnames[rtype_index]
       logger.debug(
         f"{i}: {rc.restype_3to1[original_residue]}({original_residue}) -> "
-        f"{rc.restypes[residue_index]}({rc.resnames[residue_index]})")
+        f"{rc.restypes[rtype_index]}({rc.resnames[rtype_index]})")
       neighbor_index.update(
         self.protein.get_neighbor_indicies(i, self.radius).tolist())
     logger.debug(f"sequence updated: \t {self.long_to_short_seq(self.seq)}")
