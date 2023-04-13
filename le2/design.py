@@ -144,8 +144,9 @@ class SequenceDesigner():
       protein_name = os.path.splitext(file_name)[0]
       with open(output_path, 'w') as f:
         f.write(f">{protein_name}, accuracy: {output['accuracy']:.4f}, "
-                f" loss: {output['loss']:.2f}, identity: {output['identity']:.4f}"
-                f", run_time: {runtime}, niter: {output['niter']}\n")
+                f"loss: {output['loss']:.2f}, identity: {output['identity']:.4f}, "
+                f"run_time: {runtime:.4f}, niter: {output['niter']}, "
+                f"seed: {seed}\n")
         f.write(f"{output['sequence']}\n")
     return output
 
@@ -162,7 +163,7 @@ def main(args):
   # Start design sequence.
   designer = SequenceDesigner(model)
   designer.load_file(args.target_path)
-  output = designer.design(output_path=args.output_path)
+  output = designer.design(args.output_path, args.seed)
   print(output)
 
   
@@ -173,6 +174,8 @@ if __name__ == '__main__':
                       help='File or directory to evaluate')
   parser.add_argument('-O', '--output_path', type=str,
                       help='Output path, default: <target>.fasta in target directory')
+  parser.add_argument('-S', '--seed', type=int, default=42,
+                      help='Random seed, default: 42')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')
