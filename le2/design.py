@@ -92,7 +92,8 @@ class SequenceDesigner():
   def get_accuracy(self):
     return self.is_correct.float().mean().item()
   
-  def long_to_short_seq(self, long_seq):
+  @staticmethod
+  def long_to_short_seq(long_seq):
     """Transform 3 letter sequence to 1 letter sequence."""
     return ''.join(rc.restype_3to1[residue] for residue in long_seq)
     
@@ -106,7 +107,7 @@ class SequenceDesigner():
     ca_distances = self.protein.mutual_ca_distances.to_dense()
     self.is_neighborhood = (ca_distances > 0) & (ca_distances < self.radius)
     
-  def design(self, seed=42):
+  def design(self, output_path, seed=42):
     """Design the sequence."""
     # Set seed.
     ticker = time.time()
@@ -126,14 +127,26 @@ class SequenceDesigner():
       index_to_change = random.sample(
         incorrect_index, min(len(incorrect_index), num_change))
       self._iter(index_to_change)
+    runtime = time.time() - ticker
     logger.info(f"Designed a sequence of length {len(self.seq)} "
-                f"in {time.time() - ticker:.2f} seconds")
+                f"in {runtime:.2f} seconds")
     identity = sum((self.seq[i] == self.original_seq[i]
                     for i in range(len(self.seq)))) / len(self.seq)
-    output = {'sequence': self.seq,
+    output = {'sequence': self.long_to_short_seq(self.seq),
               'loss': self.get_loss(),
               'accuracy': self.get_accuracy(),
-              'identity': identity}
+              'identity': identity,
+              'niter': niter}
+    
+    # Write design output to fasta file.
+    with open(output_path, 'w') as f:
+      file_name = os.path.basename(output_path)
+      protein_name = os.path.splitext(file_name)[0]
+      with open(output_path, 'w') as f:
+        f.write(f">{protein_name}, accuracy: {output['accuracy']:.4f}, "
+                f" loss: {output['loss']:.2f}, identity: {output['identity']:.4f}"
+                f", run_time: {runtime}, niter: {output['niter']}\n")
+        f.write(f"{output['sequence']}\n")
     return output
 
 
@@ -149,7 +162,7 @@ def main(args):
   # Start design sequence.
   designer = SequenceDesigner(model)
   designer.load_file(args.target_path)
-  output = designer.design()
+  output = designer.design(output_path=args.output_path)
   print(output)
 
   
@@ -158,6 +171,8 @@ if __name__ == '__main__':
   ## Dataset parameters
   parser.add_argument('-T', '--target_path', type=str,
                       help='File or directory to evaluate')
+  parser.add_argument('-O', '--output_path', type=str,
+                      help='Output path, default: <target>.fasta in target directory')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')
@@ -193,6 +208,12 @@ if __name__ == '__main__':
     raise ValueError('Please specify the path to training and evaluation data.')
   if args.model_path is None:
     raise ValueError('Please specify the path to the model to evaluate.')
+    
+  # Set output path default.
+  if args.output_path is None:
+    args.output_path = os.path.splitext(args.target_path)[0] + '.fasta'
+    
+  # Get real path.
   args.target_path = os.path.realpath(args.target_path)
   if args.config:
     args.config = os.path.realpath(args.config)
