@@ -162,9 +162,17 @@ def main(args):
   model.load_state_dict(state_dict)
   # Start design sequence.
   designer = SequenceDesigner(model)
-  designer.load_file(args.target_path)
-  output = designer.design(args.output_path, args.seed)
-  print(output)
+  if os.path.isdir(args.target_path):
+    for file_name in os.listdir(args.target_path):
+      if file_name.endswith('.pdb') or file_name.endswith('.cif'):
+        file_path = os.path.join(args.target_path, file_name)
+        output_path = os.path.join(
+          args.output_path, os.path.splitext(file_name)[0] + '.fasta')
+        designer.load_file(file_path)
+        designer.design(output_path, args.seed)
+  else:
+    designer.load_file(args.target_path)
+    designer.design(args.output_path, args.seed)
 
   
 if __name__ == '__main__':
@@ -214,7 +222,14 @@ if __name__ == '__main__':
     
   # Set output path default.
   if args.output_path is None:
-    args.output_path = os.path.splitext(args.target_path)[0] + '.fasta'
+    if os.path.isdir(args.target_path):
+      args.output_path = args.target_path
+    else:
+      args.output_path = os.path.splitext(args.target_path)[0] + '.fasta'
+      
+  # Make output directory.
+  if os.path.isdir(args.target_path):
+    os.makedirs(args.output_path, exist_ok=True)
     
   # Get real path.
   args.target_path = os.path.realpath(args.target_path)
