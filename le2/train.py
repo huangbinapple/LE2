@@ -122,7 +122,7 @@ def main(args):
   dataset_train = construct_dataset_from_dir(
     train_dir, cache=True)
   dataset_validate = construct_dataset_from_dir(
-    validate_dir, chache=True)
+    validate_dir, cache=True)
   dl_train = DataLoader(
     dataset_train, batch_size=batch_size, shuffle=True, collate_fn=collate_fn,
     num_workers=nworker, pin_memory=True)
@@ -289,7 +289,7 @@ if __name__ == '__main__':
   if args.config:
     with open(args.config, 'r') as f:
         config = json.load(f) 
-        config = {k: v for k, v in config.items() if v in args}
+        config = {k: v for k, v in config.items() if k in args}
     parser.set_defaults(**config)
   # Parse arguments again for overwriting config file.
   args = parser.parse_args()
