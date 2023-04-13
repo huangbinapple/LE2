@@ -49,7 +49,6 @@ class SequenceDesigner():
     logger.debug(f'predicted sequence:\t '
                  f"{''.join(rc.restypes[i] for i in self.predicted_rtype)}")
     logger.debug(f'index to change:\t {index}')
-    neighbor_index = set()
     # Change residues at index to predicted type and collect affected neighbors.
     for i, rtype_index in zip(index, self.predicted_rtype[index]):
       original_residue = self.seq[i]
@@ -57,10 +56,8 @@ class SequenceDesigner():
       logger.debug(
         f"{i}: {rc.restype_3to1[original_residue]}({original_residue}) -> "
         f"{rc.restypes[rtype_index]}({rc.resnames[rtype_index]})")
-      neighbor_index.update(
-        self.protein.get_neighbor_indicies(i, self.radius).tolist())
     logger.debug(f"sequence updated: \t {self.long_to_short_seq(self.seq)}")
-    neighbor_index = list(neighbor_index)
+    neighbor_index = self.is_neighborhood[index].any(0).nonzero().squeeze(-1)
     self.is_correct[index] = True
     # Update neighbors' states.
     update_output = self._predict(neighbor_index)
@@ -106,6 +103,8 @@ class SequenceDesigner():
     self.protein = self.dataset.protein
     self.seq = self.protein.residue_names
     self.original_seq = self.seq.copy()
+    ca_distances = self.protein.mutual_ca_distances.to_dense()
+    self.is_neighborhood = (ca_distances > 0) & (ca_distances < self.radius)
     
   def design(self, seed=42):
     """Design the sequence."""
