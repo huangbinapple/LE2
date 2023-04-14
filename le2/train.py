@@ -212,7 +212,7 @@ def main(args):
           for batch in dl_validate:
             result = model(batch, output_loss=True, output_ncorrect=True)
             validate_loss += result['loss'].sum().item()
-            validate_ncorrect += result['ncorrect']
+            validate_ncorrect += result['iscorrect'].sum().item()
             validate_nsample += len(result['loss'])
           # Calculate the average validation loss and accuracy.
           validation_loss = validate_loss / validate_nsample
