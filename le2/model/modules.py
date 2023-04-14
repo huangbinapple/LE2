@@ -25,7 +25,8 @@ class ResidueTypePredictor(nn.Module):
 
   def forward(self, sample: dict, output_loss=False,
               output_logit=False, output_confidence=False,
-              output_predicted_rtype=False, output_iscorrect=False) -> dict:
+              output_predicted_rtype=False, output_iscorrect=False,
+              output_embedding=False) -> dict:
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
@@ -49,6 +50,8 @@ class ResidueTypePredictor(nn.Module):
     logits = self.head_residue_type(x)  # Shape: (B, 21)
     
     # Calculation only depends on the logits.
+    if output_embedding:
+      output['embedding'] = x
     if output_logit:
       output['logit'] = logits
     if output_predicted_rtype or output_iscorrect:
