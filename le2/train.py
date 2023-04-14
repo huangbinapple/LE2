@@ -6,6 +6,7 @@ import logging
 
 import torch
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 from le2.data.dataset import construct_dataset_from_dir
 from le2.data.dataset import collate_fn
@@ -109,6 +110,8 @@ def main(args):
   batch_size = args.batch_size
   work_dir = args.work_dir
   model_store_dir = os.path.join(work_dir, 'models')
+  tensorboard_dir = os.path.join(work_dir, 'tensorboard')
+  writer = SummaryWriter(tensorboard_dir)
   
   # Create the directory to save the model
   os.makedirs(model_store_dir, exist_ok=True)
@@ -188,6 +191,8 @@ def main(args):
                     f'nsample_trained: {global_nsample} (+{local_nsample}), '
                     f'training loss: {training_loss:.4f}, '
                     f'training accuracy: {training_acc:.4f}')
+        writer.add_scalars('loss', {'train': training_loss}, global_nsample)
+        writer.add_scalars('accuracy', {'train': training_acc}, global_nsample)
         # Reset variables for logging.
         local_loss, local_ncorrect, local_nsample = 0, 0, 0     
       
@@ -220,6 +225,10 @@ def main(args):
                       f'nsample_trained: {global_nsample}, '
                       f'validation loss: {validation_loss:.4f}, '
                       f'validation accuracy: {validation_acc:.4f}')
+          writer.add_scalars('loss', {'validate': validation_loss},
+                             global_nsample)
+          writer.add_scalars('accuracy', {'validate': validation_acc},
+                             global_nsample)
         # Save model.
         is_new_best = save_model(model, global_nsample, validation_acc,
                                  best_models, nsave=nsave,
