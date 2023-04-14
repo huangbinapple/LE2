@@ -26,7 +26,7 @@ class ResidueTypePredictor(nn.Module):
   def forward(self, sample: dict, output_loss=False,
               output_logit=False, output_confidence=False,
               output_predicted_rtype=False, output_iscorrect=False,
-              output_embedding=False) -> dict:
+              output_embedding=False, senpai=False) -> dict:
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
@@ -39,7 +39,8 @@ class ResidueTypePredictor(nn.Module):
     """
     mask = sample['mask'].to(self.device)
     output = {}
-    x = feature.make_feature(sample['features'], device=self.device)
+    x = feature.make_feature(sample['features'], device=self.device,
+                             add_senpai=senpai)
     # Shape: (B, L, 45)
     x = self.input(x)  # Shape: (B, L, 256)
     x = self.encoder(x, src_key_padding_mask=~mask) # Shape: (B, L, 256)

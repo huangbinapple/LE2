@@ -6,7 +6,7 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 def make_feature(feature_batch: dict, device: str ='cpu',
-                 max_1d_distance: int = 5) -> torch.Tensor:
+                 max_1d_distance: int = 5, add_senpai: bool=False) -> torch.Tensor:
   """
   Make features that fed into the model.
   Args:
@@ -21,6 +21,7 @@ def make_feature(feature_batch: dict, device: str ='cpu',
   neighbor_position_1d = \
     feature_batch['neighbor_indicies'] + feature_batch['neighbor_chain_ids']
   r_position_1d = neighbor_position_1d - target_position_1d.unsqueeze(1)
+  r_position_1d_ = r_position_1d  # Save for latter use, Shape: (B, L)
   r_position_1d = torch.clamp(r_position_1d + max_1d_distance,
                               min=0, max=max_1d_distance * 2)
   r_position_1d = F.one_hot(r_position_1d, num_classes=max_1d_distance * 2 + 1)
@@ -49,11 +50,13 @@ def make_feature(feature_batch: dict, device: str ='cpu',
   is_same_chain = is_same_chain.unsqueeze(-1)
   # Shape: (B, L, 1)
   
+  features = [r_position_1d, r_position_3d, residue_type, is_same_chain]
+  
+  if add_senpai:
+    is_senpai = (r_position_1d_ < 0).unsqueeze(-1) & is_same_chain
+    features.append(is_senpai)
+  
   # Concate all features.
-  return torch.cat([
-    r_position_1d,
-    r_position_3d,
-    residue_type,
-    is_same_chain,], dim=-1)
+  return torch.cat(features, dim=-1)
   # Shape: (B, L, 45) 11 + 12 + 21 + 1
   

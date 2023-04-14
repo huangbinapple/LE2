@@ -105,6 +105,7 @@ def main(args):
   d_model = args.d_model
   nhead = args.nhead
   nlayer = args.nlayer
+  senpai = args.senpai
   nepoch = args.nepoch
   nworker = args.nworker
   batch_size = args.batch_size
@@ -134,7 +135,7 @@ def main(args):
     num_workers=nworker, pin_memory=True)
   
   # Define the model
-  d_feature = 45
+  d_feature = 46 if senpai else 45
   model = ResidueTypePredictor(d_feature, d_model, nhead, nlayer, device)
   # Prepare model for training.
   optimizer = torch.optim.Adam(model.parameters())
@@ -166,7 +167,8 @@ def main(args):
 
       # Train the model for one step.
       optimizer.zero_grad()
-      result = model(batch, output_loss=True, output_iscorrect=True)
+      result = model(batch, output_loss=True, output_iscorrect=True,
+                     senpai=senpai)
       loss_mean = result['loss'].mean()
       loss_mean.backward()
       optimizer.step()
@@ -210,7 +212,8 @@ def main(args):
         with torch.no_grad():
           validate_loss, validate_ncorrect, validate_nsample = 0, 0, 0
           for batch in dl_validate:
-            result = model(batch, output_loss=True, output_ncorrect=True)
+            result = model(batch, output_loss=True, output_iscorrect=True,
+                           senpai=senpai)
             validate_loss += result['loss'].sum().item()
             validate_ncorrect += result['iscorrect'].sum().item()
             validate_nsample += len(result['loss'])
@@ -268,6 +271,10 @@ if __name__ == '__main__':
                       help='Number of layers, default: 3')
   parser.add_argument('-d', '--device', type=str, default='cpu',
                       help='Device, default: cpu')
+  parser.add_argument('--senpai', action='store_true', default=False,
+                      help='Use senpai model, default: False')
+  parser.add_argument('--no-senpai', dest='senpai', action='store_false',
+                      help='Use normal model')
   ## Training parameters
   parser.add_argument('-A', '--autostop', action='store_true', default=False,
                       help='Stop training if validation accuracy is not improved'
