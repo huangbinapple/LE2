@@ -22,6 +22,9 @@ class ResidueTypePredictor(nn.Module):
     self.encoder = nn.TransformerEncoder(encoder_layers, n_layers)
     # Define the output layer.
     self.head_residue_type = nn.Linear(d_model, rc.restype_num + 1, device=device)
+    # Initialize the weights.
+    nn.init.xavier_uniform_(self.input.weight)
+    nn.init.xavier_uniform_(self.head_residue_type.weight)
 
   def forward(self, sample: dict, output_loss=False,
               output_logit=False, output_confidence=False,
