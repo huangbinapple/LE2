@@ -17,7 +17,7 @@ logger = log.logger
 
 class SequenceDesigner():
   
-  def __init__(self, model):
+  def __init__(self, model, senpai=False):
     self.radius = 12
     self.model = model
     self.model.eval()
@@ -25,6 +25,7 @@ class SequenceDesigner():
     self.is_correct = None
     self.loss = None
     self.predicted_rtype = None
+    self.senpai = senpai
     self._subset_sampler = FixedOrderSampler([])
     
   def _initialize_seq(self):
@@ -83,7 +84,8 @@ class SequenceDesigner():
     batch = next(iter(self.dl))
     with torch.no_grad():
       output = self.model(batch, output_iscorrect=True,
-                          output_loss=True, output_predicted_rtype=True)
+                          output_loss=True, output_predicted_rtype=True,
+                          senpai=self.senpai)
     return output
   
   def get_loss(self):
@@ -155,13 +157,14 @@ def main(args):
   # print(vars(args))
   # return
   # Create model.
+  input_dim = 46 if args.senpai else 45
   model = ResidueTypePredictor(
-    args.input_dim, args.d_model, args.nhead, args.nlayer, args.device)
+    input_dim, args.d_model, args.nhead, args.nlayer, args.device)
   # Load model parameters.
   state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
   model.load_state_dict(state_dict)
   # Start design sequence.
-  designer = SequenceDesigner(model)
+  designer = SequenceDesigner(model, senpai=args.senpai)
   if os.path.isdir(args.target_path):
     for file_name in os.listdir(args.target_path):
       if file_name.endswith('.pdb') or file_name.endswith('.cif'):
@@ -191,12 +194,14 @@ if __name__ == '__main__':
                       help='Number of heads, default: 16')
   parser.add_argument('-L', '--nlayer', type=int, default=3,
                       help='Number of layers, default: 3')
-  parser.add_argument('-I', '--input_dim', type=int, default=45,
-                      help='Input dimension, default: 45')
   parser.add_argument('-M', '--model_path', type=str,
                       help='Path to the model to evaluate')
   parser.add_argument('-d', '--device', type=str, default='cpu',
                       help='Device, default: cpu')
+  parser.add_argument('--senpai', action='store_true', default=False,
+                      help='Use senpai model, default: False')
+  parser.add_argument('--no-senpai', dest='senpai', action='store_false',
+                      help='Use normal model')
   ## Other parameters
   parser.add_argument('-l', '--log_level', type=str, default='INFO')
   parser.add_argument('--log_file', type=str)

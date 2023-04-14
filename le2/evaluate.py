@@ -63,8 +63,9 @@ def evaluate(model, dataloader, **kwargs):
 
 def main(args):
   # Create model.
+  input_dim = 46 if args.senpai else 45
   model = ResidueTypePredictor(
-    args.input_dim, args.d_model, args.nhead, args.nlayer, args.device)
+    input_dim, args.d_model, args.nhead, args.nlayer, args.device)
   # Load model parameters.
   state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
   model.load_state_dict(state_dict)
@@ -75,7 +76,7 @@ def main(args):
     dataset = construct_dataset_from_dir(args.evaluate_path, cache=args.cache, radius=9)
   dl = DataLoader(dataset, batch_size=4096 * 2, collate_fn=collate_fn, num_workers=32)
   # Evaluate model.
-  output = evaluate(model, dl, output_iscorrect=True)
+  output = evaluate(model, dl, output_iscorrect=True, senpai=args.senpai)
   print(output['iscorrect'].sum().item() / len(output['iscorrect']))
 
 if __name__ == '__main__':
@@ -94,12 +95,14 @@ if __name__ == '__main__':
                       help='Number of heads, default: 16')
   parser.add_argument('-L', '--nlayer', type=int, default=3,
                       help='Number of layers, default: 3')
-  parser.add_argument('-I', '--input_dim', type=int, default=45,
-                      help='Input dimension, default: 45')
   parser.add_argument('-M', '--model_path', type=str,
                       help='Path to the model to evaluate')
   parser.add_argument('-d', '--device', type=str, default='cpu',
                       help='Device, default: cpu')
+  parser.add_argument('--senpai', action='store_true', default=False,
+                      help='Use senpai model, default: False')
+  parser.add_argument('--no-senpai', dest='senpai', action='store_false',
+                      help='Use normal model')
   ## Other parameters
   parser.add_argument('-l', '--log_level', type=str, default='INFO')
   parser.add_argument('-C', '--config', type=str,
