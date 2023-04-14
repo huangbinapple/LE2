@@ -235,12 +235,14 @@ def main(args):
                                  save_model_dir=model_store_dir)
         # If the model is not saved as one of the best models, and the autostop
         # option is enabled, stop the training.
-        if not is_new_best and args.autostop:
-          stored_model_accs = [acc for _, acc in best_models]
-          logger.info(f'Training Stop, validation accuracy is not improved.'
-            f'({validation_acc:.4f} is less than any of {stored_model_accs}.)')
-          stop_train = True
-          break
+        if not is_new_best:
+          logger.warning('The validation accuracy is not improved!')
+          if args.autostop:
+            stored_model_accs = [acc for _, acc in best_models]
+            logger.info(f'Training Stop, validation accuracy is not improved.'
+              f'({validation_acc:.4f} is less than any of {stored_model_accs}.)')
+            stop_train = True
+            break
         
       # Exit model evaluation mode
       model.train()
