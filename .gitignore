@@ -19,4 +19,5 @@ log/
 /data/
 playground/
 no_sync/
+ipynb/
 **/__pycache__/
