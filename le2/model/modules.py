@@ -26,10 +26,10 @@ class ResidueTypePredictor(nn.Module):
     nn.init.xavier_uniform_(self.input.weight)
     nn.init.xavier_uniform_(self.head_residue_type.weight)
 
-  def forward(self, sample: dict, output_loss=False,
-              output_logit=False, output_confidence=False,
-              output_predicted_rtype=False, output_iscorrect=False,
-              output_embedding=False, senpai=False) -> dict:
+  def forward(self, sample: dict, output_loss=False, output_logit=False,
+              output_confidence=False, output_predicted_rtype=False,
+              output_iscorrect=False, output_embedding=False,
+              output_probability=False, senpai=False) -> dict:
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
@@ -62,9 +62,9 @@ class ResidueTypePredictor(nn.Module):
       predicted_rtypes = torch.argmax(logits, dim=1)  # Shape: (B,)
       if output_predicted_rtype:
         output['predicted_rtype'] = predicted_rtypes
-    if output_confidence or output_confidence:
+    if output_confidence or output_probability:
       probabilties = torch.softmax(logits, dim=1)  # Shape: (B, 21)
-      if output_confidence:
+      if output_probability:
         output['probability'] = probabilties
       if output_confidence:
         # Calculate the confidence, which is the entropy of the probability
