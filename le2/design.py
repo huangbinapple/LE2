@@ -110,11 +110,13 @@ class SequenceDesigner():
     ca_distances = self.protein.mutual_ca_distances.to_dense()
     self.is_neighborhood = (ca_distances > 0) & (ca_distances < self.radius)
     
-  def design(self, output_path, seed=42):
+  def design(self, output_path, seed=None):
     """Design the sequence."""
     # Set seed.
     ticker = time.time()
     logger.info(f'Start designing {self.protein_name} ...')
+    if seed is None:
+      seed = random.randint(0, 2 ** 32 - 1)
     random.seed(seed)
     self._initialize_seq()
     
@@ -197,8 +199,8 @@ if __name__ == '__main__':
                       help='File or directory to evaluate')
   parser.add_argument('-O', '--output_path', type=str,
                       help='Output path, default: <target>.fasta in target directory')
-  parser.add_argument('-S', '--seed', type=int, default=42,
-                      help='Random seed, default: 42')
+  parser.add_argument('-S', '--seed', type=int,
+                      help='Random seed, default: random_seed')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')
