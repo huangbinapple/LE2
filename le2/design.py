@@ -100,6 +100,7 @@ class SequenceDesigner():
     return ''.join(rc.restype_3to1[residue] for residue in long_seq)
     
   def load_file(self, file_path):
+    self.protein_name = os.path.basename(file_path).split('.')[0]
     self.dataset = LocalEnvironmentDataSet(file_path)
     self.dl = DataLoader(self.dataset, batch_size=len(self.dataset),
                          sampler=self._subset_sampler, collate_fn=collate_fn)
@@ -113,7 +114,7 @@ class SequenceDesigner():
     """Design the sequence."""
     # Set seed.
     ticker = time.time()
-    logger.debug('Start designing ...')
+    logger.info(f'Start designing {self.protein_name} ...')
     random.seed(seed)
     self._initialize_seq()
     
