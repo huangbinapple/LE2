@@ -70,10 +70,11 @@ def main(args):
   state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
   model.load_state_dict(state_dict)
   # Create dataloader.
+  logger.info(f'Loading data from {args.evaluate_path} ...')
   if os.path.isfile(args.evaluate_path):
-    dataset = LocalEnvironmentDataSet(args.evaluate_path, radius=9)
+    dataset = LocalEnvironmentDataSet(args.evaluate_path, radius=12)
   else:
-    dataset = construct_dataset_from_dir(args.evaluate_path, cache=args.cache, radius=9)
+    dataset = construct_dataset_from_dir(args.evaluate_path, cache=args.cache, radius=12)
   dl = DataLoader(dataset, batch_size=4096 * 2, collate_fn=collate_fn, num_workers=32)
   # Evaluate model.
   output = evaluate(model, dl, output_iscorrect=True, senpai=args.senpai)
