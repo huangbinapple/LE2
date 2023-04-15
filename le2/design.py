@@ -119,6 +119,10 @@ class SequenceDesigner():
     self._initialize_seq()
     
     niter = 0
+    max_acc = 0
+    loss = 0
+    designed_n = 0
+    designed_seq = []
     stage_1_length = int(len(self.seq) / 1)
     stage_2_length = int(len(self.seq) / 5)
     schedule = stage_1_length * [5] + stage_2_length * [1]
@@ -130,16 +134,23 @@ class SequenceDesigner():
       index_to_change = random.sample(
         incorrect_index, min(len(incorrect_index), num_change))
       self._iter(index_to_change)
+      acc = self.get_accuracy()
+      if acc > max_acc:
+        max_acc = acc
+        loss = self.get_loss()
+        designed_n = niter + 1
+        designed_seq = self.seq.copy()
+      
     runtime = time.time() - ticker
     logger.info(f"Designed a sequence of length {len(self.seq)} "
                 f"in {runtime:.2f} seconds")
-    identity = sum((self.seq[i] == self.original_seq[i]
-                    for i in range(len(self.seq)))) / len(self.seq)
-    output = {'sequence': self.long_to_short_seq(self.seq),
-              'loss': self.get_loss(),
-              'accuracy': self.get_accuracy(),
+    identity = sum((designed_seq[i] == self.original_seq[i]
+                    for i in range(len(designed_seq)))) / len(designed_seq)
+    output = {'sequence': self.long_to_short_seq(designed_seq),
+              'loss': loss,
+              'accuracy': max_acc,
               'identity': identity,
-              'niter': niter}
+              'niter':  + 1}
     
     # Write design output to fasta file.
     with open(output_path, 'w') as f:
@@ -148,7 +159,7 @@ class SequenceDesigner():
       with open(output_path, 'w') as f:
         f.write(f">{protein_name}, accuracy: {output['accuracy']:.4f}, "
                 f"loss: {output['loss']:.4f}, identity: {output['identity']:.4f}, "
-                f"run_time: {runtime:.4f}, niter: {output['niter']}, "
+                f"run_time: {runtime:.4f}, niter: {designed_n}/{output['niter']}, "
                 f"seed: {seed}\n")
         f.write(f"{output['sequence']}\n")
     return output
