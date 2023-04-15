@@ -150,7 +150,7 @@ class SequenceDesigner():
               'loss': loss,
               'accuracy': max_acc,
               'identity': identity,
-              'niter':  + 1}
+              'niter': niter + 1}
     
     # Write design output to fasta file.
     with open(output_path, 'w') as f:
