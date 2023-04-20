@@ -17,8 +17,8 @@ from le2.common import utils
 logger = log.logger
 
   
-def save_model(
-  model, global_step, val_acc, best_models, nsave=3, save_model_dir='.') -> bool:
+def save_checkpoint(
+  model, optimizer, global_step, val_acc, best_models, nsave=3, save_model_dir='.') -> bool:
   """Save model to disk if it is one of the best three models, and remove 
   the worst model if there are more than three models saved.
   Also, save the latest model to disk.
@@ -47,7 +47,8 @@ def save_model(
   # Prepare the directory to save the model
   
   to_save = dict(
-    state_dict=model.state_dict(), step=global_step, val_acc=val_acc)
+    state_dict=model.state_dict(), optimizer=optimizer.state_dict(),
+    step=global_step, val_acc=val_acc)
   
   # Delete the latest model, the only file .pth starts with 'latest'.
   file_to_delete = \
@@ -233,7 +234,7 @@ def main(args):
           writer.add_scalars('accuracy', {'validate': validation_acc},
                              global_nsample)
         # Save model.
-        is_new_best = save_model(model, global_nsample, validation_acc,
+        is_new_best = save_checkpoint(model, optimizer, global_nsample, validation_acc,
                                  best_models, nsave=nsave,
                                  save_model_dir=model_store_dir)
         # If the model is not saved as one of the best models, and the autostop
