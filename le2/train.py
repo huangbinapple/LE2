@@ -111,7 +111,7 @@ def main(args):
   nworker = args.nworker
   batch_size = args.batch_size
   work_dir = args.work_dir
-  fast_mode = ~args.save_memory
+  fast_mode = not args.save_memory
   model_store_dir = os.path.join(work_dir, 'models')
   tensorboard_dir = os.path.join(work_dir, 'tensorboard')
   writer = SummaryWriter(tensorboard_dir)
