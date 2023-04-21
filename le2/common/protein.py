@@ -134,11 +134,6 @@ class Protein:
     del state['_valid_residues_index']
     return state
     
-  def __setstate__(self, state):
-    self.__dict__.update(state)
-    # Uncompress mutual_ca_distances training/design speed.
-    self.mutual_ca_distances = self.mutual_ca_distances.to_dense()
-    
   def __len__(self) -> int:
     """Return the number of residues in the protein."""
     return len(self.atom_coords)
@@ -163,6 +158,13 @@ class Protein:
     distances = torch.cdist(ca_atoms, ca_atoms)
     return distances  # shape: (L, L), type: torch.tensor
   
+  def distance_matrix_to_dense(self) -> None:
+    """Convert a sparse CA matrix to a dense one.
+    This save training time, but takes up more memory.
+    """
+    if self.mutual_ca_distances.layout == torch.sparse_coo:
+      self.mutual_ca_distances = self.mutual_ca_distances.to_dense()
+  
   def get_neighbor_indicies(
       self, residue_index: int, cutoff: float =12.0) -> torch.tensor:
     """Get the neighbors of a residue.
@@ -177,6 +179,8 @@ class Protein:
     """
     assert cutoff < self.big_distance, 'The cutoff distance is too big.'
     ca_distances = self.mutual_ca_distances[residue_index]
+    if ca_distances.layout == torch.sparse_coo:
+      ca_distances = ca_distances.to_dense()
     # Get values's index whose value ins between 0 and cutoff
     index = (ca_distances > 0) & (ca_distances < cutoff)
     return index.nonzero().squeeze(-1)

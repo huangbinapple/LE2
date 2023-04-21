@@ -87,7 +87,8 @@ class LocalEnvironmentDataSet(Dataset):
 def construct_dataset_from_dir(
   dir_path: str,
   radius: float =12.0,
-  cache: bool=False) -> ConcatDataset:
+  cache: bool=False,
+  fast_mode: bool=True) -> ConcatDataset:
   """
   Construct a ConcatDataset from a directory using all cif and pdb
   files in that dir, by constructing a LocalEnvironmentDataSet for each
@@ -103,6 +104,8 @@ def construct_dataset_from_dir(
     try:
       dataset = LocalEnvironmentDataSet(
         os.path.join(dir_path, file_name), radius=radius, cache=cache)
+      if fast_mode:
+        dataset.protein.distance_matrix_to_dense()
       datasets.append(dataset)
       n_loaded += 1
     except ValueError as e:

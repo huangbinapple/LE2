@@ -111,6 +111,7 @@ def main(args):
   nworker = args.nworker
   batch_size = args.batch_size
   work_dir = args.work_dir
+  fast_mode = ~args.save_memory
   model_store_dir = os.path.join(work_dir, 'models')
   tensorboard_dir = os.path.join(work_dir, 'tensorboard')
   writer = SummaryWriter(tensorboard_dir)
@@ -125,9 +126,9 @@ def main(args):
   
   # Create training and validation datasets and dataloaders
   dataset_train = construct_dataset_from_dir(
-    train_dir, cache=True)
+    train_dir, cache=True, fast_mode=fast_mode)
   dataset_validate = construct_dataset_from_dir(
-    validate_dir, cache=True)
+    validate_dir, cache=True, fast_mode=fast_mode)
   dl_train = DataLoader(
     dataset_train, batch_size=batch_size, shuffle=True, collate_fn=collate_fn,
     num_workers=nworker, pin_memory=True)
@@ -295,6 +296,9 @@ if __name__ == '__main__':
                       help='Number of epochs, default: 10')
   parser.add_argument('-N', '--nworker', type=int, default=8,
                       help='Number of workers, default: 8')
+  parser.add_argument('--save_memory', action='store_true', default=False,
+                      help='Use this option if your memory run on training')
+  parser.add_argument('--no-save_memory', dest='save_memory', action='store_false')
   ## Other parameters
   parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')
