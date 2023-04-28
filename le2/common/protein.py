@@ -158,6 +158,18 @@ class Protein:
     distances = torch.cdist(ca_atoms, ca_atoms)
     return distances  # shape: (L, L), type: torch.tensor
   
+  def backbone_to_pdb_string(self):
+    lines = []
+    for i, atom_coords in enumerate(self.atom_coords):
+      for atom_name, coords in zip(['N', 'CA', 'C'], atom_coords):
+        atom_index = i * 3 + ['N', 'CA', 'C'].index(atom_name) + 1
+        lines.append(
+          f'ATOM  {atom_index:>5}  {atom_name:<3} {self.residue_names[i]:>3} '\
+          f'{self.residue_chain_ids[i]:>1}{self.residue_indicies[i]:>4}    '\
+          f'{coords[0]:>8.3f}{coords[1]:>8.3f}{coords[2]:>8.3f}  1.00  '\
+          f'0.00          {atom_name[0]:>2}\n')
+    return ''.join(lines)
+  
   def distance_matrix_to_dense(self) -> None:
     """Convert a sparse CA matrix to a dense one.
     This save training time, but takes up more memory.
