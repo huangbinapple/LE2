@@ -111,7 +111,7 @@ def main(args):
   nworker = args.nworker
   batch_size = args.batch_size
   work_dir = args.work_dir
-  fast_mode = not args.save_memory
+  fast_mode = not args.low_ram
   model_store_dir = os.path.join(work_dir, 'models')
   tensorboard_dir = os.path.join(work_dir, 'tensorboard')
   writer = SummaryWriter(tensorboard_dir)
@@ -296,9 +296,9 @@ if __name__ == '__main__':
                       help='Number of epochs, default: 10')
   parser.add_argument('-N', '--nworker', type=int, default=8,
                       help='Number of workers, default: 8')
-  parser.add_argument('--save_memory', action='store_true', default=False,
+  parser.add_argument('--low_ram', action='store_true', default=False,
                       help='Use this option if your memory run on training')
-  parser.add_argument('--no-save_memory', dest='save_memory', action='store_false')
+  parser.add_argument('--no-low_ram', dest='low_ram', action='store_false')
   ## Other parameters
   parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')
