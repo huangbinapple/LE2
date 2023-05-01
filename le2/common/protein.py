@@ -5,7 +5,7 @@ import Bio  # type: ignore
 from Bio.PDB import PDBParser, FastMMCIFParser  # type: ignore
 import torch
 from le2.common import log
-from le2.common import utils
+from le2.common import utils, r3
 
 logger = log.logger
 
@@ -111,6 +111,7 @@ class Protein:
     self.atom_coords =\
       self._atoms_info['main_chain_atoms'][self._valid_residues_index]
       # shape: (L, 3, 3)
+    self.residue_frames = r3.vec2transform(self.atom_coords)  # shape: (L, 4, 4)
     self.residue_names =\
       [self._atoms_info['residue_names'][i] for i in self._valid_residues_index]
     self.residue_indicies =\

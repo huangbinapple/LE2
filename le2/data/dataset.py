@@ -7,7 +7,7 @@ import pickle
 from torch.utils.data import Dataset, ConcatDataset
 from le2.common.protein import Protein
 from le2.common import residue_constants as rc
-from le2.common import log
+from le2.common import log, r3
 from torch.nn.utils.rnn import pad_sequence
 
 logger = log.logger
@@ -40,6 +40,9 @@ class LocalEnvironmentDataSet(Dataset):
         logger.debug(f"Saving data to {cache_file}")
         with open(cache_file, 'wb') as f:
           pickle.dump(self.protein, f)
+    # Check if protein has property `residue_frames`.
+    if not hasattr(self.protein, 'residue_frames'):
+      self.protein.residue_frames = r3.vec2transform(self.protein.atom_coords)
     logger.debug(f"Loaded {len(self.protein)} residues from {file_path}")
     
   def __len__(self) -> int:
@@ -54,10 +57,10 @@ class LocalEnvironmentDataSet(Dataset):
         in the local environment of the residue at index `index`.
       - neighbor_indicies (list): a list of the indicies of the residues
       - neighbor_chain_ids (list): a list of the chain ids of the residues
-      - neighbor_atom_cooridnates (tensor): a tensor of the atom coordinates
+      - neighbor_residue_frames (tensor): a tensor of residue frames
       - target_index (int): the index of the target residue
       - target_chain_id (str): the chain id of the target residue
-      - target_atom_coordinates (tensor): a tensor of the atom coordinates
+      - target_residue_frames (tensor): a tensor of residue frames
     - label (dict):
       - target_name (str): the name of the residue at index `index`
     - meta (dict): a dictionary containing the metadata of the residue at
@@ -72,11 +75,11 @@ class LocalEnvironmentDataSet(Dataset):
       [self.protein.residue_indicies[i] for i in neighbor_indicies]
     features['neighbor_chain_ids'] =\
       [self.protein.residue_chain_ids[i] for i in neighbor_indicies]
-    features['neighbor_atom_coordinates'] =\
-      self.protein.atom_coords[neighbor_indicies]
+    features['neighbor_residue_frames'] =\
+      self.protein.residue_frames[neighbor_indicies]
     features['target_index'] = self.protein.residue_indicies[index]
     features['target_chain_id'] = self.protein.residue_chain_ids[index]
-    features['target_atom_coordinates'] = self.protein.atom_coords[index]
+    features['target_residue_frames'] = self.protein.residue_frames[index]
     
     label = dict(target_name=self.protein.residue_names[index])
     
@@ -131,11 +134,11 @@ def collate_fn(batch: list) -> dict:
       - neighbor_names (torch.tensor): shape: (batch_size, max_len)
       - neighbor_indicies (torch.tensor): shape: (batch_size, max_len)
       - neighbor_chain_ids (torch.tensor): shape: (batch_size, max_len)
-      - neighbor_atom_coordinates (torch.tensor):
-        shape: (batch_size, max_len, 3, 3)
+      - neighbor_residue_frames (torch.tensor):
+        shape: (batch_size, max_len, 4, 4)
       - target_index (torch.tensor): shape: (batch_size)
       - target_chain_id (torch.tensor): shape: (batch_size)
-      - target_atom_coordinates (torch.tensor): shape: (batch_size, 3, 3)
+      - target_residue_frames (torch.tensor): shape: (batch_size, 4, 4)
     - labels (dict): a dictionary containing the labels of the batch.
      - target_name (torch.tensor): shape: (batch_size)
     - metas (dict): a dictionary containing the metas of the batch.
@@ -166,8 +169,8 @@ def collate_fn(batch: list) -> dict:
     [torch.tensor(list(map(hash, sample['feature']['neighbor_chain_ids'])))
      for sample in batch], batch_first=True)
   
-  output['features']['neighbor_atom_coordinates'] = pad_sequence(
-    [sample['feature']['neighbor_atom_coordinates']
+  output['features']['neighbor_residue_frames'] = pad_sequence(
+    [sample['feature']['neighbor_residue_frames']
      for sample in batch], batch_first=True)
   
   output['features']['target_index'] = torch.tensor(
@@ -176,8 +179,8 @@ def collate_fn(batch: list) -> dict:
   output ['features']['target_chain_id'] = torch.tensor(
     list(map(hash, [sample['feature']['target_chain_id'] for sample in batch])))
 
-  output['features']['target_atom_coordinates'] = torch.stack(
-    [sample['feature']['target_atom_coordinates'] for sample in batch])
+  output['features']['target_residue_frames'] = torch.stack(
+    [sample['feature']['target_residue_frames'] for sample in batch])
   
   output['labels']['target_name'] = torch.tensor(
     [rc.get_resname_index(sample['label']['target_name']) for sample in batch])

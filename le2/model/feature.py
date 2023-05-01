@@ -28,12 +28,9 @@ def make_feature(feature_batch: dict, device: str ='cpu',
   # Shape: (B, L, 11)  # default max_1d_distance = 5
   
   # relative position in 3d space
-  target_frame = r3.vec2transform(feature_batch['target_atom_coordinates'])
-  # Shape: (B, 4, 4)
-  neighbor_frame = r3.vec2transform(feature_batch['neighbor_atom_coordinates'])
-  # Shape: (B, L, 4, 4)
   r_position_3d = torch.einsum('Bij,BLjk->BLik',
-    r3.transform_invert(target_frame), neighbor_frame)
+    r3.transform_invert(feature_batch['target_residue_frames']),
+    feature_batch['neighbor_residue_frames'])
   # Shape: (B, L, 4, 4)
   r_position_3d = r3.transform2feat(r_position_3d)
   # Shape: (B, L, 12)

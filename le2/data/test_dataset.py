@@ -31,10 +31,10 @@ class TestLocalEnvironmentDataSet(unittest.TestCase):
     self.assertIn('neighbor_names', sample['feature'])
     self.assertIn('neighbor_indicies', sample['feature'])
     self.assertIn('neighbor_chain_ids', sample['feature'])
-    self.assertIn('neighbor_atom_coordinates', sample['feature'])
+    self.assertIn('neighbor_residue_frames', sample['feature'])
     self.assertIn('target_index', sample['feature'])
     self.assertIn('target_chain_id', sample['feature'])
-    self.assertIn('target_atom_coordinates', sample['feature'])
+    self.assertIn('target_residue_frames', sample['feature'])
     self.assertIn('target_name', sample['label'])
     self.assertIn('file_path', sample['meta'])
     
@@ -64,8 +64,8 @@ class TestCollateFn(unittest.TestCase):
     # Check features dictionary keys
     assert set(batch['features'].keys()) == set([
       'neighbor_names', 'neighbor_indicies', 'neighbor_chain_ids',
-      'neighbor_atom_coordinates', 'target_index', 'target_chain_id',
-      'target_atom_coordinates'])
+      'neighbor_residue_frames', 'target_index', 'target_chain_id',
+      'target_residue_frames'])
     
     # Check mask shape
     # print(batch['mask'].shape)
@@ -83,10 +83,10 @@ class TestCollateFn(unittest.TestCase):
     assert batch['features']['neighbor_chain_ids'].shape == (2, max_len)
     assert isinstance(batch['features']['neighbor_chain_ids'], torch.Tensor)
     
-    # Check neighbor_atom_coordinates shape and type
-    assert batch['features']['neighbor_atom_coordinates'].shape == (
-      2, max_len, 3, 3)
-    assert isinstance(batch['features']['neighbor_atom_coordinates'], torch.Tensor)
+    # Check neighbor_residue_frames shape and type
+    assert batch['features']['neighbor_residue_frames'].shape == (
+      2, max_len, 4, 4)
+    assert isinstance(batch['features']['neighbor_residue_frames'], torch.Tensor)
     
     # Check target_index shape and type
     assert batch['features']['target_index'].shape == (2,)
@@ -96,9 +96,9 @@ class TestCollateFn(unittest.TestCase):
     assert batch['features']['target_chain_id'].shape == (2,)
     assert isinstance(batch['features']['target_chain_id'], torch.Tensor)
     
-    # Check target_atom_coordinates shape and type
-    assert batch['features']['target_atom_coordinates'].shape == (2, 3, 3)
-    assert isinstance(batch['features']['target_atom_coordinates'], torch.Tensor)
+    # Check target_residue_frames shape and type
+    assert batch['features']['target_residue_frames'].shape == (2, 4, 4)
+    assert isinstance(batch['features']['target_residue_frames'], torch.Tensor)
     
     # Check labels dictionary keys
     assert set(batch['labels'].keys()) == set(['target_name'])
