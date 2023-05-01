@@ -4,6 +4,27 @@ from torch import einsum
 from einops import rearrange
 
 
+def quat_to_transform(quat, shift=torch.zeros(3)):
+  """(..., 4, 4) <- (..., 3), (..., 3)
+  Convert quaternion to transform matrix."""
+  # Add 1 to last dim of quat.
+  quat = torch.cat([torch.ones_like(quat[..., :1]), quat], dim=-1)
+  # Convert quat to unit quat.
+  quat = quat / quat.norm(dim=-1, keepdim=True)
+  result = torch.zeros(*quat.shape[:-1], 4, 4, device=quat.device)
+  result[..., 0, 0] = 1 - 2 * quat[..., 2] ** 2 - 2 * quat[..., 3] ** 2
+  result[..., 0, 1] = 2 * quat[..., 1] * quat[..., 2] - 2 * quat[..., 3] * quat[..., 0]
+  result[..., 0, 2] = 2 * quat[..., 1] * quat[..., 3] + 2 * quat[..., 2] * quat[..., 0]
+  result[..., 1, 0] = 2 * quat[..., 1] * quat[..., 2] + 2 * quat[..., 3] * quat[..., 0]
+  result[..., 1, 1] = 1 - 2 * quat[..., 1] ** 2 - 2 * quat[..., 3] ** 2
+  result[..., 1, 2] = 2 * quat[..., 2] * quat[..., 3] - 2 * quat[..., 1] * quat[..., 0]
+  result[..., 2, 0] = 2 * quat[..., 1] * quat[..., 3] - 2 * quat[..., 2] * quat[..., 0]
+  result[..., 2, 1] = 2 * quat[..., 2] * quat[..., 3] + 2 * quat[..., 1] * quat[..., 0]
+  result[..., 2, 2] = 1 - 2 * quat[..., 1] ** 2 - 2 * quat[..., 2] ** 2
+  result[..., :3, 3] = shift
+  result[..., 3, 3] = 1
+  return result
+
 def vec2rotation(vec):
   """(..., 3, 3) <- (..., 3, 3)
   Return the transform matrix given three points' coordinate."""
