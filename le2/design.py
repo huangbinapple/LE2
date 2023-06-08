@@ -50,7 +50,7 @@ class SequenceDesigner():
     logger.debug(f'predicted sequence:\t '
                  f"{''.join(rc.restypes[i] for i in self.predicted_rtype)}")
     logger.debug(f'index to change:\t {index}')
-    # Change residues at index to predicted type and collect affected neighbors.
+    # Change residues at index to predicted type and collect affected residues.
     for i, rtype_index in zip(index, self.predicted_rtype[index]):
       original_residue = self.seq[i]
       self.seq[i] = rc.resnames[rtype_index]
@@ -58,14 +58,13 @@ class SequenceDesigner():
         f"{i}: {rc.restype_3to1[original_residue]}({original_residue}) -> "
         f"{rc.restypes[rtype_index]}({rc.resnames[rtype_index]})")
     logger.debug(f"sequence updated: \t {self.long_to_short_seq(self.seq)}")
-    neighbor_index = self.is_neighborhood[index].any(0).nonzero().squeeze(-1)
-    self.is_correct[index] = True
-    # Update neighbors' states.
-    update_output = self._predict(neighbor_index)
-    self.is_correct[neighbor_index] = update_output['iscorrect']
-    self.loss[neighbor_index] = update_output['loss']
-    self.predicted_rtype[neighbor_index] = update_output['predicted_rtype']
-    logger.debug(f"Updated {len(neighbor_index)} residues")
+    # Update affected residues' states.
+    affected_index = self.is_affected[index].any(0).nonzero().squeeze(-1)
+    update_output = self._predict(affected_index)
+    self.is_correct[affected_index] = update_output['iscorrect']
+    self.loss[affected_index] = update_output['loss']
+    self.predicted_rtype[affected_index] = update_output['predicted_rtype']
+    logger.debug(f"Updated {len(affected_index)} residues")
     logger.debug(f"loss: {self.get_loss()}; accuracy: {self.get_accuracy()}")
     logger.debug(f"is_correct: \t\t "
                  f"{''.join(map(str, self.is_correct.type(torch.int).tolist()))}")
@@ -108,7 +107,7 @@ class SequenceDesigner():
     self.seq = self.protein.residue_names
     self.original_seq = self.seq.copy()
     ca_distances = self.protein.mutual_ca_distances.to_dense()
-    self.is_neighborhood = (ca_distances > 0) & (ca_distances < self.radius)
+    self.is_affected = (ca_distances >= 0) & (ca_distances < self.radius)
     
   def design(self, output_path, seed=None):
     """Design the sequence."""
