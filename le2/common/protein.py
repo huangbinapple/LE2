@@ -190,12 +190,13 @@ class Protein:
     - neighbors (torch.tensor): a troch tensor of type int containing the
     indices of the neighboring redidues
     """
+    ALMOST_ZERO = 0.01  # cdistance < ALMOST_ZERO is considered as 0
     assert cutoff < self.big_distance, 'The cutoff distance is too big.'
     ca_distances = self.mutual_ca_distances[residue_index]
     if ca_distances.layout == torch.sparse_coo:
       ca_distances = ca_distances.to_dense()
     # Get values's index whose value ins between 0 and cutoff
-    index = (ca_distances > 0) & (ca_distances < cutoff)
+    index = (ca_distances > ALMOST_ZERO) & (ca_distances < cutoff)
     return index.nonzero().squeeze(-1)
 
 
