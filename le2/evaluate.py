@@ -75,7 +75,8 @@ def main(args):
     dataset = LocalEnvironmentDataSet(args.evaluate_path, radius=12)
   else:
     dataset = construct_dataset_from_dir(args.evaluate_path, cache=args.cache, radius=12)
-  dl = DataLoader(dataset, batch_size=4096 * 2, collate_fn=collate_fn, num_workers=32)
+  dl = DataLoader(dataset, batch_size=4096 * 2, collate_fn=collate_fn,
+                  num_workers=args.nworker)
   # Evaluate model.
   output = evaluate(model, dl, output_iscorrect=True, senpai=args.senpai)
   print(output['iscorrect'].sum().item() / len(output['iscorrect']))
@@ -105,6 +106,9 @@ if __name__ == '__main__':
   parser.add_argument('--no-senpai', dest='senpai', action='store_false',
                       help='Use normal model')
   ## Other parameters
+  n_work_default = max(8, os.cpu_count())
+  parser.add_argument('-N', '--nworker', type=int, default=n_work_default,
+                      help='Number of workers, default: max(8, cpu_count)')
   parser.add_argument('-l', '--log_level', type=str, default='INFO')
   parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')

@@ -294,8 +294,9 @@ if __name__ == '__main__':
                       help='Batch size, default: 2048')
   parser.add_argument('-E', '--nepoch', type=int, default=10,
                       help='Number of epochs, default: 10')
-  parser.add_argument('-N', '--nworker', type=int, default=8,
-                      help='Number of workers, default: 8')
+  n_work_default = max(8, os.cpu_count())
+  parser.add_argument('-N', '--nworker', type=int, default=n_work_default,
+                      help='Number of workers, default: max(8, cpu_count)')
   parser.add_argument('--low_ram', action='store_true', default=False,
                       help='Use this option if your memory run on training')
   parser.add_argument('--no-low_ram', dest='low_ram', action='store_false')
