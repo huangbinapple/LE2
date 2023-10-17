@@ -55,5 +55,5 @@ def make_feature(feature_batch: dict, device: str ='cpu',
   
   # Concate all features.
   return torch.cat(features, dim=-1)
-  # Shape: (B, L, 45) 11 + 12 + 21 + 1
+  # Shape: (B, L, 45|46) 11 + 12 + 21 + 1 [+1]
   
