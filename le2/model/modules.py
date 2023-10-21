@@ -72,7 +72,7 @@ class ResidueTypePredictor(nn.Module):
         output['confidence'] = confidence
     
     # Calculation depends on the target.
-    if output_loss or output_iscorrect:
+    if output_loss or output_iscorrect or output_gt:
       target_names = sample['labels']['target_name'].to(self.device)
       if output_gt:
         output['gt'] = target_names
