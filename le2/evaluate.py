@@ -79,8 +79,14 @@ def main(args):
   dl = DataLoader(dataset, batch_size=4096 * 2, collate_fn=collate_fn,
                   num_workers=args.nworker)
   # Evaluate model.
-  output = evaluate(model, dl, output_iscorrect=True, senpai=args.senpai)
-  print(output['iscorrect'].sum().item() / len(output['iscorrect']))
+  output = evaluate(model, dl, output_iscorrect=True, output_loss=True,
+                    senpai=args.senpai)
+  
+  num_correct = output['iscorrect'].sum().item()
+  avg_loss = output['loss'].mean().item()
+  print(num_correct)
+  print(num_correct / len(output['iscorrect']))
+  print('loss:', avg_loss)
   
   if args.output:
     data_dict = {key: value.cpu().numpy() for key, value in output.items()}
