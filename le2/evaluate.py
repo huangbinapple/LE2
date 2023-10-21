@@ -2,6 +2,7 @@ import argparse
 import os
 import json
 import time
+import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 from le2.common import log
@@ -80,6 +81,12 @@ def main(args):
   # Evaluate model.
   output = evaluate(model, dl, output_iscorrect=True, senpai=args.senpai)
   print(output['iscorrect'].sum().item() / len(output['iscorrect']))
+  
+  if args.output:
+    data_dict = {key: value.cpu().numpy() for key, value in output.items()}
+    df = pd.DataFrame(data_dict)
+    df.to_csv(args.output, index=False)
+
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -112,6 +119,8 @@ if __name__ == '__main__':
   parser.add_argument('-l', '--log_level', type=str, default='INFO')
   parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')
+  parser.add_argument('-O', '--output', type=str,
+                      help='Path to write evaluate result')
   
   # Parse arguments for the first time.
   args = parser.parse_args()
