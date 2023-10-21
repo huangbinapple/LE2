@@ -29,7 +29,7 @@ class ResidueTypePredictor(nn.Module):
   def forward(self, sample: dict, output_loss=False, output_logit=False,
               output_confidence=False, output_predicted_rtype=False,
               output_iscorrect=False, output_embedding=False,
-              output_probability=False, senpai=False) -> dict:
+              output_probability=False, output_gt=False, senpai=False) -> dict:
     """
     Args:
       - sample: dict of input (See le2/data/dataset.py/collate_fn).
@@ -74,6 +74,8 @@ class ResidueTypePredictor(nn.Module):
     # Calculation depends on the target.
     if output_loss or output_iscorrect:
       target_names = sample['labels']['target_name'].to(self.device)
+      if output_gt:
+        output['gt'] = target_names
       if output_loss:
         output['loss'] = nn.CrossEntropyLoss(reduction='none')(
         logits, target_names.to(self.device))  # Shape: (B,)
