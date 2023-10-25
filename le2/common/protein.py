@@ -126,8 +126,8 @@ class Protein:
   def __getstate__(self):
     state = self.__dict__.copy()
     # Compress mutual_ca_distances to save disk space.
-    self.mutual_ca_distances = \
-    utils.convert_to_sparse_coo(self.mutual_ca_distances, self.big_distance)
+    state['mutual_ca_distances'] = \
+      utils.convert_to_sparse_coo(self.mutual_ca_distances, self.big_distance)
     del state['_structure']
     del state['_raw_string']
     del state['_file_type']
