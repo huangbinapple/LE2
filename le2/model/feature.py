@@ -6,7 +6,8 @@ from torch.nn.utils.rnn import pad_sequence
 
 
 def make_feature(feature_batch: dict, device: str ='cpu',
-                 max_1d_distance: int = 5, add_senpai: bool=False) -> torch.Tensor:
+                 max_1d_distance: int = 5, add_senpai: bool=False,
+                 compatible_mode:bool = False) -> torch.Tensor:
   """
   Make features that fed into the model.
   Args:
@@ -47,11 +48,17 @@ def make_feature(feature_batch: dict, device: str ='cpu',
   is_same_chain = is_same_chain.unsqueeze(-1)
   # Shape: (B, L, 1)
   
-  features = [r_position_1d, r_position_3d, residue_type, is_same_chain]
-  
-  if add_senpai:
-    is_senpai = (r_position_1d_ < 0).unsqueeze(-1) & is_same_chain
-    features.append(is_senpai)
+  if compatible_mode:
+    features = [residue_type, is_same_chain, r_position_1d, r_position_3d]
+    if add_senpai:
+      is_senpai = (r_position_1d_ < 0).unsqueeze(-1) & is_same_chain
+      features =\
+        [residue_type, is_same_chain, is_senpai, r_position_1d, r_position_3d]
+  else:
+    features = [r_position_1d, r_position_3d, residue_type, is_same_chain]
+    if add_senpai:
+      is_senpai = (r_position_1d_ < 0).unsqueeze(-1) & is_same_chain
+      features.append(is_senpai)
   
   # Concate all features.
   return torch.cat(features, dim=-1)

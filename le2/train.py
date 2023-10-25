@@ -138,7 +138,8 @@ def main(args):
   
   # Define the model
   d_feature = 46 if senpai else 45
-  model = ResidueTypePredictor(d_feature, d_model, nhead, nlayer, device)
+  model = ResidueTypePredictor(d_feature, d_model, nhead, nlayer, device,
+                               compatible_mode=args.compatible)
   # Prepare model for training.
   optimizer = torch.optim.Adam(model.parameters())
   # Log model parameters number
@@ -300,6 +301,8 @@ if __name__ == '__main__':
   parser.add_argument('--low_ram', action='store_true', default=False,
                       help='Use this option if your memory run on training')
   parser.add_argument('--no-low_ram', dest='low_ram', action='store_false')
+  parser.add_argument('--compatible', action='store_true', default=False,
+                      help='Use feature format as ProDESGIN-LE')
   ## Other parameters
   parser.add_argument('-C', '--config', type=str,
                       help='Path to JSON config file')

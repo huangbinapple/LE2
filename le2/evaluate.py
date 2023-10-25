@@ -66,7 +66,8 @@ def main(args):
   # Create model.
   input_dim = 46 if args.senpai else 45
   model = ResidueTypePredictor(
-    input_dim, args.d_model, args.nhead, args.nlayer, args.device)
+    input_dim, args.d_model, args.nhead, args.nlayer, args.device,
+    compatible_mode=args.compatible)
   # Load model parameters.
   state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
   model.load_state_dict(state_dict)
@@ -118,6 +119,8 @@ if __name__ == '__main__':
                       help='Use senpai model, default: False')
   parser.add_argument('--no-senpai', dest='senpai', action='store_false',
                       help='Use normal model')
+  parser.add_argument('--compatible', action='store_true', default=False,
+                      help='Use feature format as ProDESGIN-LE')
   ## Other parameters
   n_work_default = max(8, os.cpu_count())
   parser.add_argument('-N', '--nworker', type=int, default=n_work_default,

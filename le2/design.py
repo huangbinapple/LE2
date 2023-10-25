@@ -172,9 +172,13 @@ def main(args):
   # Create model.
   input_dim = 46 if args.senpai else 45
   model = ResidueTypePredictor(
-    input_dim, args.d_model, args.nhead, args.nlayer, args.device)
+    input_dim, args.d_model, args.nhead, args.nlayer, args.device,
+    compatible_mode=args.compatible)
   # Load model parameters.
-  state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
+  if args.compatible:
+    state_dict = torch.load(args.model_path, map_location=args.device)['model_state_dict']
+  else:
+    state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
   model.load_state_dict(state_dict)
   # Start design sequence.
   designer = SequenceDesigner(model, senpai=args.senpai)
@@ -215,6 +219,8 @@ if __name__ == '__main__':
                       help='Use senpai model, default: False')
   parser.add_argument('--no-senpai', dest='senpai', action='store_false',
                       help='Use normal model')
+  parser.add_argument('--compatible', action='store_true', default=False,
+                      help='Use feature format as ProDESGIN-LE')
   ## Other parameters
   parser.add_argument('-l', '--log_level', type=str, default='INFO')
   parser.add_argument('--log_file', type=str)

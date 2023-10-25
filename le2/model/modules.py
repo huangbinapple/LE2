@@ -11,9 +11,10 @@ class ResidueTypePredictor(nn.Module):
   """Predict residue type from features."""
 
   def __init__(self, d_input, d_model=256, n_heads=4, n_layers=3,
-              device='cpu'):
+              device='cpu', compatible_mode:bool=False):
     super().__init__()
     self.device = device
+    self.compatible_mode = compatible_mode
     # Define the input layer.
     self.input = nn.Linear(d_input, d_model, device=device)
     # Define the transformer encoder.
@@ -43,7 +44,8 @@ class ResidueTypePredictor(nn.Module):
     mask = sample['mask'].to(self.device)
     output = {}
     x = feature.make_feature(sample['features'], device=self.device,
-                             add_senpai=senpai)
+                             add_senpai=senpai,
+                             compatible_mode=self.compatible_mode)
     # Shape: (B, L, 45)
     x = self.input(x)  # Shape: (B, L, 256)
     x = self.encoder(x, src_key_padding_mask=~mask) # Shape: (B, L, 256)
