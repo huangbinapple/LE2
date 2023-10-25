@@ -71,6 +71,9 @@ class LocalEnvironmentDataSet(Dataset):
     """
     features = {}
     neighbor_indicies = self.protein.get_neighbor_indicies(index, self.radius)
+    # When there is no neighbor, return previous sample to avoid NaN.
+    if len(neighbor_indicies) == 0:
+      return self.__getitem__(index - 1) 
     features['neighbor_names'] =\
       [self.protein.residue_names[i] for i in neighbor_indicies]
     features['neighbor_indicies'] =\
