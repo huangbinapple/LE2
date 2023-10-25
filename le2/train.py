@@ -126,7 +126,8 @@ def main(args):
   
   # Create training and validation datasets and dataloaders
   dataset_train = construct_dataset_from_dir(
-    train_dir, cache=True, fast_mode=fast_mode, radius=args.radius)
+    train_dir, cache=True, fast_mode=fast_mode, radius=args.radius,
+    noise_level=args.noise/100)
   dataset_validate = construct_dataset_from_dir(
     validate_dir, cache=True, fast_mode=fast_mode, radius=args.radius)
   dl_train = DataLoader(
@@ -267,6 +268,8 @@ if __name__ == '__main__':
                       help='Path to validation data')
   parser.add_argument('-R', '--radius', type=int, default=12,
                       help='The radius of the local environment')
+  parser.add_argument('--noise', type=int, default=0,
+                      help='Noise added when training, std, unit is A. 2 stands for 0.02')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')

@@ -18,10 +18,12 @@ class LocalEnvironmentDataSet(Dataset):
   def __init__(self,
                file_path: str,  # Path to the PDB/CIF file
                radius: float =12.0,  # Radius of the local environment
-               cache: bool=False):  # Path to the cache directory
+               cache: bool=False,
+               noise_level: float=0.0):  # Path to the cache directory
     logger.debug(f"Loading data from {file_path}..., radius={radius}")
     self.radius = radius
     self.file_path = file_path
+    self.noise_level = noise_level
     file_type = file_path.split('.')[-1]
     # cache_dir is the directory of the file path.
     cache_dir = os.path.dirname(file_path)
@@ -41,7 +43,7 @@ class LocalEnvironmentDataSet(Dataset):
         with open(cache_file, 'wb') as f:
           pickle.dump(self.protein, f)
     # Check if protein has property `residue_frames`.
-    if not hasattr(self.protein, 'residue_frames'):
+    if not hasattr(self.protein, 'residue_frames') and noise_level == 0:
       self.protein.residue_frames = r3.vec2transform(self.protein.atom_coords)
     logger.debug(f"Loaded {len(self.protein)} residues from {file_path}")
     
@@ -79,7 +81,18 @@ class LocalEnvironmentDataSet(Dataset):
       self.protein.residue_frames[neighbor_indicies]
     features['target_index'] = self.protein.residue_indicies[index]
     features['target_chain_id'] = self.protein.residue_chain_ids[index]
-    features['target_residue_frames'] = self.protein.residue_frames[index]
+    
+    if self.noise_level == 0:
+      features['target_residue_frames'] = self.protein.residue_frames[index]
+      features['neighbor_residue_frames'] =\
+        self.protein.residue_frames[neighbor_indicies]
+    else:
+      residue_frames_noise = r3.vec2transform(
+        self.protein.atom_coords +\
+          self.noise_level * torch.randn_like(self.protein.atom_coords))
+      features['target_residue_frames'] = residue_frames_noise[index]
+      features['neighbor_residue_frames'] =\
+        residue_frames_noise[neighbor_indicies]
     
     label = dict(target_name=self.protein.residue_names[index])
     
@@ -91,7 +104,8 @@ def construct_dataset_from_dir(
   dir_path: str,
   radius: float =12.0,
   cache: bool=False,
-  fast_mode: bool=True) -> ConcatDataset:
+  fast_mode: bool=True,
+  noise_level: float=0.0) -> ConcatDataset:
   """
   Construct a ConcatDataset from a directory using all cif and pdb
   files in that dir, by constructing a LocalEnvironmentDataSet for each
@@ -106,7 +120,8 @@ def construct_dataset_from_dir(
       os.listdir(dir_path)):
     try:
       dataset = LocalEnvironmentDataSet(
-        os.path.join(dir_path, file_name), radius=radius, cache=cache)
+        os.path.join(dir_path, file_name), radius=radius, cache=cache,
+        noise_level=noise_level)
       if fast_mode:
         dataset.protein.distance_matrix_to_dense()
       datasets.append(dataset)
