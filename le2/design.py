@@ -17,8 +17,8 @@ logger = log.logger
 
 class SequenceDesigner():
   
-  def __init__(self, model, senpai=False):
-    self.radius = 12
+  def __init__(self, model, radius, senpai=False):
+    self.radius = radius
     self.model = model
     self.model.eval()
     self.dataset = None
@@ -100,7 +100,7 @@ class SequenceDesigner():
     
   def load_file(self, file_path):
     self.protein_name = os.path.basename(file_path).split('.')[0]
-    self.dataset = LocalEnvironmentDataSet(file_path)
+    self.dataset = LocalEnvironmentDataSet(file_path, radius=self.radius)
     self.dl = DataLoader(self.dataset, batch_size=len(self.dataset),
                          sampler=self._subset_sampler, collate_fn=collate_fn)
     self.protein = self.dataset.protein
@@ -181,7 +181,7 @@ def main(args):
     state_dict = torch.load(args.model_path, map_location=args.device)['state_dict']
   model.load_state_dict(state_dict)
   # Start design sequence.
-  designer = SequenceDesigner(model, senpai=args.senpai)
+  designer = SequenceDesigner(model, senpai=args.senpai, radius=args.radius)
   if os.path.isdir(args.target_path):
     for file_name in os.listdir(args.target_path):
       if file_name.endswith('.pdb') or file_name.endswith('.cif'):
@@ -204,6 +204,8 @@ if __name__ == '__main__':
                       help='Output path, default: <target>.fasta in target directory')
   parser.add_argument('-S', '--seed', type=int,
                       help='Random seed, default: random_seed')
+  parser.add_argument('-R', '--radius', type=int, default=12,
+                      help='The radius of the local environment')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')

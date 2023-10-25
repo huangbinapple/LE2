@@ -126,9 +126,9 @@ def main(args):
   
   # Create training and validation datasets and dataloaders
   dataset_train = construct_dataset_from_dir(
-    train_dir, cache=True, fast_mode=fast_mode)
+    train_dir, cache=True, fast_mode=fast_mode, radius=args.radius)
   dataset_validate = construct_dataset_from_dir(
-    validate_dir, cache=True, fast_mode=fast_mode)
+    validate_dir, cache=True, fast_mode=fast_mode, radius=args.radius)
   dl_train = DataLoader(
     dataset_train, batch_size=batch_size, shuffle=True, collate_fn=collate_fn,
     num_workers=nworker, pin_memory=True)
@@ -265,6 +265,8 @@ if __name__ == '__main__':
                       help='Path to training data')
   parser.add_argument('-V', '--validate_dir', type=str,
                       help='Path to validation data')
+  parser.add_argument('-R', '--radius', type=int, default=12,
+                      help='The radius of the local environment')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')

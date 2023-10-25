@@ -74,9 +74,10 @@ def main(args):
   # Create dataloader.
   logger.info(f'Loading data from {args.evaluate_path} ...')
   if os.path.isfile(args.evaluate_path):
-    dataset = LocalEnvironmentDataSet(args.evaluate_path, radius=12)
+    dataset = LocalEnvironmentDataSet(args.evaluate_path, radius=args.radius)
   else:
-    dataset = construct_dataset_from_dir(args.evaluate_path, cache=args.cache, radius=12)
+    dataset = construct_dataset_from_dir(args.evaluate_path, cache=args.cache,
+                                         radius=args.radius)
   dl = DataLoader(dataset, batch_size=4096 * 2, collate_fn=collate_fn,
                   num_workers=args.nworker)
   # Evaluate model.
@@ -104,6 +105,8 @@ if __name__ == '__main__':
                       help='Create/load cache file for faster loading')
   parser.add_argument('--no-cache', action='store_false', dest='cache',
                       help='Do not create/load cache file for faster loading')
+  parser.add_argument('-R', '--radius', type=int, default=12,
+                      help='The radius of the local environment')
   ## Model parameters
   parser.add_argument('-D', '--d_model', type=int, default=256,
                       help='Model dimension, default: 256')
