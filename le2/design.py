@@ -48,7 +48,7 @@ class SequenceDesigner():
     logger.debug("Sequence index: \t " + (''.join(str(i) for i in range(10))) * 10)
     logger.debug(f'current sequence:\t {self.long_to_short_seq(self.seq)}')
     logger.debug(f'predicted sequence:\t '
-                 f"{''.join(rc.restypes[i] for i in self.predicted_rtype)}")
+                 f"{''.join(rc.restypes_with_x[i] for i in self.predicted_rtype)}")
     logger.debug(f'index to change:\t {index}')
     # Change residues at index to predicted type and collect affected residues.
     for i, rtype_index in zip(index, self.predicted_rtype[index]):
@@ -56,7 +56,7 @@ class SequenceDesigner():
       self.seq[i] = rc.resnames[rtype_index]
       logger.debug(
         f"{i}: {rc.restype_3to1[original_residue]}({original_residue}) -> "
-        f"{rc.restypes[rtype_index]}({rc.resnames[rtype_index]})")
+        f"{rc.restypes_with_x[rtype_index]}({rc.resnames[rtype_index]})")
     logger.debug(f"sequence updated: \t {self.long_to_short_seq(self.seq)}")
     # Update affected residues' states.
     affected_index = self.is_affected[index].any(0).nonzero().squeeze(-1)
